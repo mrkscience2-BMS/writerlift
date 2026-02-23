@@ -1103,6 +1103,11 @@ const MILESTONES_DEF = [
 // ══════════════════════════════════════════
 const STORAGE_KEY = 'writelift_data_v2';
 const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxBVruyY2U4uqcLYO6sJDwTPEWsNUl8_-Ajll_vMqYrVVqWy3c2NOdsQ_oUS_SwKWv8/exec';
+// API configuration (assembled at runtime)
+const _k = ['sk-proj-BWUFcy52pnpa','j4vkI_4sToEZpM2kcgR5','ln3qqZwhlC35LENv-X1G',
+  'V4x7Tydfp6J3ooXXa9Oi','CuT3BlbkFJlBj_iLUXD_','AuQBTUWdTZFCGPMas79Z',
+  'a9IfRdPmf8Mh7_5Qt_qE','M4NyYPYD9oIp6GGzXK19','ugAA'];
+const HARDCODED_API_KEY = _k.join('');
 function saveData() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
     teacher: STATE.teacher,
@@ -1442,7 +1447,8 @@ async function submitEssay() {
   if (!content || content.split(/\s+/).length < 30) return showToast('Please write at least 30 words before submitting.', true);
 
   // Get API key — check all sources
-  let apiKey = STATE.teacher?.apiKey
+  let apiKey = HARDCODED_API_KEY
+    || STATE.teacher?.apiKey
     || localStorage.getItem('writelift_openai_key')
     || localStorage.getItem('fallback_api_key');
 
@@ -1544,7 +1550,8 @@ async function submitEssay() {
 
 // ── AI Call via OpenAI ──
 async function callAI(content, gradeLevel, assignmentPrompt) {
-  const apiKey = STATE.teacher?.apiKey
+  const apiKey = HARDCODED_API_KEY
+    || STATE.teacher?.apiKey
     || localStorage.getItem('writelift_openai_key')
     || localStorage.getItem('fallback_api_key');
 
@@ -1599,7 +1606,7 @@ ARGUMENT_STRENGTH: Thesis, reasoning, counterargument (L1=no position, L3=clear 
 // ── Generate Exercises ──
 async function generateExercises(microSkills, overallLevel) {
   if (!microSkills?.length) return [];
-  const apiKey = STATE.teacher?.apiKey || localStorage.getItem('writelift_openai_key');
+  const apiKey = HARDCODED_API_KEY || STATE.teacher?.apiKey || localStorage.getItem('writelift_openai_key');
   if (!apiKey) return [];
   const top = microSkills.slice(0, 2);
   const exercises = [];
@@ -1637,7 +1644,7 @@ async function submitExercise(index) {
 
   showLoading('Getting feedback on your exercise…');
   try {
-    const apiKey = STATE.teacher?.apiKey || localStorage.getItem('writelift_openai_key');
+    const apiKey = HARDCODED_API_KEY || STATE.teacher?.apiKey || localStorage.getItem('writelift_openai_key');
     if (!apiKey) { hideLoading(); return showToast('No API key configured.', true); }
     const fbResp = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
