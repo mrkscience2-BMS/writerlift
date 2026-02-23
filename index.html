@@ -1102,6 +1102,7 @@ const MILESTONES_DEF = [
 // STORAGE
 // ══════════════════════════════════════════
 const STORAGE_KEY = 'writelift_data_v2';
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxBVruyY2U4uqcLYO6sJDwTPEWsNUl8_-Ajll_vMqYrVVqWy3c2NOdsQ_oUS_SwKWv8/exec';
 function saveData() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
     teacher: STATE.teacher,
@@ -1109,6 +1110,37 @@ function saveData() {
     submissions: STATE.submissions,
   }));
 }
+// ── Save submission to Google Sheets ──
+async function saveToSheets(submission) {
+  try {
+    await fetch(SHEETS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(submission),
+      mode: 'no-cors'
+    });
+  } catch(err) {
+    console.warn('Google Sheets sync failed:', err);
+  }
+}
+
+// ── Load submissions from Google Sheets ──
+async function loadFromSheets() {
+  try {
+    const resp = await fetch(SHEETS_URL);
+    const data = await resp.json();
+    if (data.submissions && data.submissions.length > 0) {
+      // Merge: sheets data takes priority, add any local-only entries
+      const sheetIds = new Set(data.submissions.map(s => String(s.id)));
+      const localOnly = STATE.submissions.filter(s => !sheetIds.has(String(s.id)));
+      STATE.submissions = [...data.submissions, ...localOnly];
+      saveData();
+    }
+  } catch(err) {
+    console.warn('Could not load from Google Sheets:', err);
+  }
+}
+
 function loadData() {
   try {
     // Migrate from v1
@@ -1468,6 +1500,7 @@ async function submitEssay() {
     };
     STATE.submissions.push(submission);
     saveData();
+    saveToSheets(submission); // sync to Google Sheets
 
     // Send email to teacher
     if (STATE.teacher?.email) {
@@ -1806,6 +1839,19 @@ function getFilteredSubs() {
 function renderTeacherDashboard() {
   const t = STATE.teacher;
   if (!t) return;
+  // Show loading state then fetch from Sheets
+  const container = document.getElementById('teacher-main-content');
+  container.innerHTML = '<div style="padding:60px;text-align:center;color:#6B8299"><div style="font-size:2rem;margin-bottom:12px">⏳</div><div>Loading latest submissions from Google Sheets…</div></div>';
+  loadFromSheets().then(() => {
+    _renderTeacherDashboardInner();
+  }).catch(() => {
+    _renderTeacherDashboardInner();
+  });
+}
+
+function _renderTeacherDashboardInner() {
+  const t = STATE.teacher;
+  if (!t) return;
 
   // Ensure at least one class exists
   if (STATE.classes.length === 0 && t.className) {
@@ -1851,6 +1897,7 @@ function renderTeacherDashboard() {
         <p class="t-sub">${t.email} · ${mySubs.length} submissions · ${students.length} students</p>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-secondary btn-sm" onclick="renderTeacherDashboard()">🔄 Refresh</button>
         <button class="btn btn-secondary btn-sm" onclick="openModal('modal-teacher-login')">⚙️ Settings</button>
         <button class="btn btn-secondary btn-sm" onclick="switchTeacherTab('manage')">🗂️ Manage Students</button>
         <button class="btn btn-dark btn-sm" onclick="copyStudentLink()">🔗 Copy Link</button>
