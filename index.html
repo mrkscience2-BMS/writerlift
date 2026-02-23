@@ -469,7 +469,13 @@ h1,h2,h3,h4{font-family:'Playfair Display',serif;line-height:1.15}
       <input class="form-input" id="t-code" type="text" placeholder="e.g. JOHNSON2025" style="font-family:'DM Mono',monospace">
       <div class="form-hint">Students enter this code so their work is linked to your class.</div>
     </div>
-    <input type="hidden" id="t-apikey" value="">
+    <div class="form-group">
+      <label class="form-label">OpenAI API Key <span>*</span></label>
+      <input class="form-input" id="t-apikey" type="password" placeholder="sk-...">
+      <div class="api-note">
+        Free key at <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a>. Stored only in your browser. Students need this to submit essays.
+      </div>
+    </div>
     <div class="form-group">
       <label class="form-label">EmailJS Setup (for email notifications)</label>
       <div class="form-row">
@@ -498,7 +504,20 @@ h1,h2,h3,h4{font-family:'Playfair Display',serif;line-height:1.15}
   </div>
 </div>
 
-<!-- saveFallbackKey kept for legacy compat -->
+<!-- API Key prompt for students -->
+<div class="modal-bg hidden" id="modal-apikey">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-apikey')">✕</button>
+    <h2 class="modal-title">One quick step</h2>
+    <p class="modal-sub">An OpenAI API key is needed to run the AI assessment. Ask your teacher for the class key, or enter your own.</p>
+    <div class="form-group">
+      <label class="form-label">OpenAI API Key</label>
+      <input class="form-input" id="fallback-apikey" type="password" placeholder="sk-...">
+      <div class="api-note">Get a free key at <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a></div>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="saveFallbackKey()">Continue →</button>
+  </div>
+</div>
 
 <script>
 // ══════════════════════════════════════════
@@ -830,6 +849,9 @@ async function submitEssay() {
   const content = document.getElementById('essay-input')?.value?.trim();
   if (!content || content.split(/\s+/).length < 30) return showToast('Please write at least 30 words before submitting.', true);
 
+  const apiKey = STATE.teacher?.apiKey || localStorage.getItem('writelift_openai_key');
+  if (!apiKey) { openModal('modal-apikey'); return; }
+
   showLoading('Analyzing your writing with AI…');
   const btn = document.getElementById('submit-btn');
   if (btn) btn.disabled = true;
@@ -908,8 +930,11 @@ async function submitEssay() {
   }
 }
 
-// ── AI Call (uses built-in artifact API — no CORS, no API key needed) ──
+// ── AI Call via OpenAI (works from any hosted website — no CORS issues) ──
 async function callAI(content, gradeLevel, assignmentPrompt) {
+  const apiKey = STATE.teacher?.apiKey || localStorage.getItem('writelift_openai_key');
+  if (!apiKey) throw new Error('No API key. Please ask your teacher to configure the class.');
+
   const rubric = `ORGANIZATION: Paragraph structure, flow, transitions (L1=no structure, L3=basic, L5=sophisticated)
 EVIDENCE: Supporting details, examples, reasoning (L1=none, L3=basic integration, L5=nuanced synthesis)
 GRAMMAR: Correctness, mechanics, punctuation (L1=many errors, L3=some errors, L5=near-flawless)
@@ -917,17 +942,17 @@ SENTENCE_VARIETY: Variation in length and structure (L1=all similar, L3=some mix
 VOCABULARY: Word choice, precision, richness (L1=very basic, L3=adequate, L5=sophisticated)
 ARGUMENT_STRENGTH: Thesis, reasoning, counterargument (L1=no position, L3=clear thesis, L5=compelling)`;
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
+      model: 'gpt-4o',
       max_tokens: 1800,
-      system: `You are WriteLift AI, a supportive K-12 writing assessment engine. Assess Grade ${gradeLevel} writing fairly and encouragingly. Reference specific sentences. Be specific and actionable. Respond ONLY with valid JSON — no markdown, no backticks, just the raw JSON object.`,
-      messages: [{
-        role: 'user',
-        content: `Grade ${gradeLevel} student.${assignmentPrompt ? ` Assignment: "${assignmentPrompt}"` : ' Free write.'}\n\nRUBRIC:\n${rubric}\n\nSTUDENT WRITING:\n"""\n${content}\n"""\n\nRespond ONLY with this exact JSON structure:\n{"scores":{"organization":0-100,"evidence":0-100,"grammar":0-100,"sentence_variety":0-100,"vocabulary":0-100,"argument_strength":0-100},"feedback_summary":"2-3 warm encouraging sentences about overall quality","strength_highlights":[{"skill":"skillname","text":"exact short quote from student","comment":"why this is strong"}],"improvement_highlights":[{"skill":"skillname","text":"short quote or description","comment":"specific actionable suggestion","example":"rewritten version"}],"micro_skills_flagged":["specific weakness e.g. comma splices"],"next_steps":"one concrete action"}`
-      }]
+      response_format: { type: 'json_object' },
+      messages: [
+        { role: 'system', content: `You are WriteLift AI, a supportive K-12 writing assessment engine. Assess Grade ${gradeLevel} writing fairly and encouragingly. Reference specific sentences. Be specific and actionable. Respond ONLY with valid JSON.` },
+        { role: 'user', content: `Grade ${gradeLevel} student.${assignmentPrompt ? ` Assignment: "${assignmentPrompt}"` : ' Free write.'}\n\nRUBRIC:\n${rubric}\n\nSTUDENT WRITING:\n"""\n${content}\n"""\n\nRespond ONLY with this exact JSON:\n{"scores":{"organization":0-100,"evidence":0-100,"grammar":0-100,"sentence_variety":0-100,"vocabulary":0-100,"argument_strength":0-100},"feedback_summary":"2-3 warm encouraging sentences","strength_highlights":[{"skill":"","text":"exact quote","comment":"why strong"}],"improvement_highlights":[{"skill":"","text":"quote","comment":"suggestion","example":"rewritten version"}],"micro_skills_flagged":["specific weakness"],"next_steps":"one concrete action"}` }
+      ]
     })
   });
 
@@ -937,9 +962,7 @@ ARGUMENT_STRENGTH: Thesis, reasoning, counterargument (L1=no position, L3=clear 
   }
 
   const data = await response.json();
-  // Strip any accidental markdown fences
-  const rawText = data.content[0].text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
-  const raw = JSON.parse(rawText);
+  const raw = JSON.parse(data.choices[0].message.content);
   const scores = raw.scores;
   const total = Object.values(scores).reduce((a,b) => a+b, 0);
   const overallScore = Math.round(total / Object.keys(scores).length);
@@ -959,25 +982,29 @@ ARGUMENT_STRENGTH: Thesis, reasoning, counterargument (L1=no position, L3=clear 
 // ── Generate Exercises ──
 async function generateExercises(microSkills, overallLevel) {
   if (!microSkills?.length) return [];
+  const apiKey = STATE.teacher?.apiKey || localStorage.getItem('writelift_openai_key');
+  if (!apiKey) return [];
   const top = microSkills.slice(0, 2);
   const exercises = [];
 
   for (const skill of top) {
     try {
-      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      const resp = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: 'gpt-4o',
           max_tokens: 600,
-          system: 'You are a K-12 writing coach. Create short, engaging exercises. Respond ONLY with raw JSON — no markdown, no backticks.',
-          messages: [{ role: 'user', content: `Level ${Math.round(overallLevel)}/5 student needs practice: "${skill}". Respond with JSON only: {"exercise_type":"","prompt":"exercise prompt","instructions":"1-2 sentence instructions","example_response":"model answer"}` }]
+          response_format: { type: 'json_object' },
+          messages: [
+            { role: 'system', content: 'You are a K-12 writing coach. Respond ONLY with JSON.' },
+            { role: 'user', content: `Level ${Math.round(overallLevel)}/5 student needs practice: "${skill}". JSON: {"exercise_type":"","prompt":"exercise prompt","instructions":"1-2 sentence instructions","example_response":"model answer"}` }
+          ]
         })
       });
       if (!resp.ok) continue;
       const d = await resp.json();
-      const rawText = d.content[0].text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
-      const ex = JSON.parse(rawText);
+      const ex = JSON.parse(d.choices[0].message.content);
       exercises.push({ ...ex, skill_area: skill, completed: false, feedback: null, id: Date.now() + Math.random() });
     } catch(e) { console.warn('Exercise gen failed for', skill, e); }
   }
@@ -993,18 +1020,22 @@ async function submitExercise(index) {
 
   showLoading('Getting feedback on your exercise…');
   try {
-    const fbResp = await fetch('https://api.anthropic.com/v1/messages', {
+    const apiKey = STATE.teacher?.apiKey || localStorage.getItem('writelift_openai_key');
+    if (!apiKey) { hideLoading(); return showToast('No API key configured.', true); }
+    const fbResp = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'gpt-4o',
         max_tokens: 300,
-        system: 'You are a supportive K-12 writing coach. Give brief, specific, encouraging feedback in 2-3 sentences.',
-        messages: [{ role: 'user', content: `Exercise on "${ex.skill_area}". Prompt: "${ex.prompt}". Student: "${resp}". Model: "${ex.example_response}". Feedback:` }]
+        messages: [
+          { role: 'system', content: 'You are a supportive K-12 writing coach. Give brief, specific, encouraging feedback in 2-3 sentences.' },
+          { role: 'user', content: `Exercise on "${ex.skill_area}". Prompt: "${ex.prompt}". Student: "${resp}". Model: "${ex.example_response}". Feedback:` }
+        ]
       })
     });
     const d = await fbResp.json();
-    const feedback = d.content[0].text;
+    const feedback = d.choices[0].message.content;
     ex.completed = true;
     ex.feedback = feedback;
     ex.student_response = resp;
@@ -1154,6 +1185,15 @@ function loadScript(src) {
     s.src = src; s.onload = res; s.onerror = rej;
     document.head.appendChild(s);
   });
+}
+
+function saveFallbackKey() {
+  const key = document.getElementById('fallback-apikey')?.value?.trim();
+  if (!key) return showToast('Please enter an API key.', true);
+  localStorage.setItem('writelift_openai_key', key);
+  if (STATE.teacher) STATE.teacher.apiKey = key;
+  closeModal('modal-apikey');
+  submitEssay();
 }
 
 // ══════════════════════════════════════════
