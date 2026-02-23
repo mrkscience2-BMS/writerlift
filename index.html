@@ -473,6 +473,81 @@ h1,h2,h3,h4{font-family:'Playfair Display',serif;line-height:1.15}
 .email-preview{background:var(--cream);border-radius:10px;padding:16px;border:1px solid var(--border);margin-top:12px;font-size:0.82rem;color:#6B8299;line-height:1.6}
 .ep-label{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--navy);margin-bottom:6px}
 
+/* ── CLASS / GROUP MANAGEMENT ── */
+.t-tabs{display:flex;gap:0;background:var(--cream-dark);border-radius:10px;padding:4px;max-width:fit-content;border:1px solid var(--border);margin-bottom:24px}
+.t-tab{padding:0.55rem 1.3rem;border-radius:7px;font-weight:600;font-size:0.85rem;cursor:pointer;transition:all 0.2s;color:#6B8299;border:none;background:none;font-family:'DM Sans',sans-serif}
+.t-tab.active{background:var(--navy);color:var(--white)}
+.class-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;align-items:center}
+.class-pill{padding:0.4rem 1rem;border-radius:100px;font-size:0.8rem;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--white);color:#6B8299;transition:all 0.2s;display:flex;align-items:center;gap:6px}
+.class-pill:hover{border-color:var(--navy);color:var(--navy)}
+.class-pill.active{background:var(--navy);color:var(--white);border-color:var(--navy)}
+.class-pill-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.class-pill-add{background:none;border:1.5px dashed var(--border);color:#6B8299;font-size:0.8rem;padding:0.4rem 1rem;border-radius:100px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;transition:all 0.2s}
+.class-pill-add:hover{border-color:var(--amber);color:var(--amber-dark)}
+.manage-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:24px}
+.class-manage-card{background:var(--white);border-radius:14px;border:1px solid var(--border);overflow:hidden;transition:box-shadow 0.2s}
+.class-manage-card:hover{box-shadow:var(--shadow-md)}
+.cmc-header{padding:16px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
+.cmc-color{width:12px;height:36px;border-radius:4px;flex-shrink:0}
+.cmc-name{font-weight:700;font-size:0.95rem;color:var(--navy)}
+.cmc-meta{font-size:0.75rem;color:#6B8299}
+.cmc-body{padding:14px 20px}
+.cmc-stat{display:flex;justify-content:space-between;font-size:0.82rem;color:#6B8299;padding:4px 0;border-bottom:1px solid rgba(13,27,42,0.05)}
+.cmc-stat:last-child{border-bottom:none}
+.cmc-stat strong{color:var(--navy)}
+.cmc-actions{padding:12px 20px;background:var(--cream);display:flex;gap:8px;flex-wrap:wrap}
+.student-manage-row{display:grid;grid-template-columns:1.5fr 1fr 1fr auto;gap:12px;padding:12px 20px;border-bottom:1px solid rgba(13,27,42,0.06);align-items:center;font-size:0.875rem}
+.student-manage-row:last-child{border-bottom:none}
+.student-manage-row:hover{background:rgba(13,27,42,0.02)}
+.smr-name{font-weight:600;color:var(--navy)}
+.smr-class{font-size:0.75rem;color:#6B8299}
+.smr-actions{display:flex;gap:6px;justify-content:flex-end}
+.action-btn{padding:4px 10px;border-radius:6px;font-size:0.72rem;font-weight:600;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all 0.2s;white-space:nowrap}
+.action-move{background:rgba(91,164,207,0.12);color:#1A5F8A}
+.action-move:hover{background:rgba(91,164,207,0.2)}
+.action-delete{background:rgba(232,93,117,0.1);color:#C0334A}
+.action-delete:hover{background:rgba(232,93,117,0.2)}
+.action-view{background:rgba(13,27,42,0.06);color:#3D5166}
+.action-view:hover{background:rgba(13,27,42,0.12)}
+.confirm-banner{background:rgba(232,93,117,0.08);border:1px solid rgba(232,93,117,0.2);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:0.875rem;color:#7A2030;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+/* ── CLASS & STUDENT MANAGEMENT ── */
+.class-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;align-items:center}
+.class-pill{padding:0.38rem 1rem;border-radius:100px;font-size:0.8rem;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--white);color:#6B8299;transition:all 0.2s;display:flex;align-items:center;gap:6px;font-family:"DM Sans",sans-serif}
+.class-pill:hover{border-color:var(--navy);color:var(--navy)}
+.class-pill.active{background:var(--navy);color:var(--white);border-color:var(--navy)}
+.class-pill-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.class-pill-add{background:none;border:1.5px dashed var(--border);color:#6B8299;font-size:0.8rem;padding:0.38rem 1rem;border-radius:100px;cursor:pointer;font-family:"DM Sans",sans-serif;font-weight:600;transition:all 0.2s}
+.class-pill-add:hover{border-color:var(--amber);color:var(--amber-dark)}
+.manage-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:28px}
+.class-manage-card{background:var(--white);border-radius:14px;border:1px solid var(--border);overflow:hidden;transition:box-shadow 0.2s}
+.class-manage-card:hover{box-shadow:var(--shadow-md)}
+.cmc-header{padding:14px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.cmc-color{width:10px;height:40px;border-radius:4px;flex-shrink:0}
+.cmc-name{font-weight:700;font-size:0.95rem;color:var(--navy)}
+.cmc-meta{font-size:0.72rem;color:#6B8299;margin-top:2px}
+.cmc-body{padding:12px 18px}
+.cmc-stat{display:flex;justify-content:space-between;font-size:0.82rem;color:#6B8299;padding:4px 0;border-bottom:1px solid rgba(13,27,42,0.05)}
+.cmc-stat:last-child{border-bottom:none}
+.cmc-stat strong{color:var(--navy)}
+.cmc-actions{padding:10px 18px;background:var(--cream);display:flex;gap:6px;flex-wrap:wrap}
+.student-manage-row{display:grid;grid-template-columns:1.5fr 1fr 0.7fr auto;gap:12px;padding:12px 20px;border-bottom:1px solid rgba(13,27,42,0.06);align-items:center}
+.student-manage-row:last-child{border-bottom:none}
+.student-manage-row:hover{background:rgba(13,27,42,0.02)}
+.smr-name{font-weight:600;color:var(--navy);font-size:0.875rem}
+.smr-class{font-size:0.72rem;color:#6B8299}
+.smr-actions{display:flex;gap:6px;justify-content:flex-end}
+.action-btn{padding:4px 10px;border-radius:6px;font-size:0.72rem;font-weight:600;cursor:pointer;border:none;font-family:"DM Sans",sans-serif;transition:all 0.2s;white-space:nowrap}
+.action-move{background:rgba(91,164,207,0.12);color:#1A5F8A}
+.action-move:hover{background:rgba(91,164,207,0.22)}
+.action-delete{background:rgba(232,93,117,0.1);color:#C0334A}
+.action-delete:hover{background:rgba(232,93,117,0.2)}
+.action-view{background:rgba(13,27,42,0.06);color:#3D5166}
+.action-view:hover{background:rgba(13,27,42,0.12)}
+.color-swatch{display:inline-block;width:26px;height:26px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all 0.15s}
+.color-swatch.selected{border-color:var(--navy);transform:scale(1.15)}
+.color-swatch:hover{transform:scale(1.1)}
+
 /* ── RESPONSIVE ── */
 @media(max-width:900px){
   .student-layout{grid-template-columns:1fr}
@@ -952,6 +1027,20 @@ h1,h2,h3,h4{font-family:'Playfair Display',serif;line-height:1.15}
   </div>
 </div>
 
+<!-- Add / Edit Class Modal -->
+<div class="modal-bg hidden" id="modal-add-class">
+  <div class="modal" id="modal-add-class-content">
+    <!-- filled by openAddClassModal() -->
+  </div>
+</div>
+
+<!-- Move Student Modal -->
+<div class="modal-bg hidden" id="modal-move-student">
+  <div class="modal" id="modal-move-student-content">
+    <!-- filled by openMoveStudentModal() -->
+  </div>
+</div>
+
 <!-- API Key prompt -->
 <div class="modal-bg hidden" id="modal-apikey">
   <div class="modal">
@@ -975,14 +1064,16 @@ h1,h2,h3,h4{font-family:'Playfair Display',serif;line-height:1.15}
 // ══════════════════════════════════════════
 const STATE = {
   screen: 'landing',
-  student: null,     // { name, grade, period, promptCode }
-  teacher: null,     // { email, className, grade, prompt, code, apiKey, emailjsPublic, emailjsService, emailjsTemplate }
-  submissions: [],   // persisted in localStorage
+  student: null,       // { name, grade, period, promptCode }
+  teacher: null,       // { email, className, grade, prompt, code, apiKey, ... }
+  classes: [],         // [{ id, name, grade, prompt, code, color }]
+  submissions: [],     // persisted in localStorage
   exercises: [],
   skills: { organization:1, evidence:1, grammar:1, sentence_variety:1, vocabulary:1, argument_strength:1 },
   milestones: [],
   studentTab: 'dashboard',
-  pendingSubmitResolve: null,
+  teacherTab: 'overview',
+  activeClassId: null,
 };
 
 const SKILL_COLORS = {
@@ -1010,17 +1101,30 @@ const MILESTONES_DEF = [
 // ══════════════════════════════════════════
 // STORAGE
 // ══════════════════════════════════════════
-const STORAGE_KEY = 'writelift_data_v1';
+const STORAGE_KEY = 'writelift_data_v2';
 function saveData() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
     teacher: STATE.teacher,
+    classes: STATE.classes,
     submissions: STATE.submissions,
   }));
 }
 function loadData() {
   try {
+    // Migrate from v1
+    const v1 = localStorage.getItem('writelift_data_v1');
+    if (v1 && !localStorage.getItem(STORAGE_KEY)) {
+      const old = JSON.parse(v1);
+      if (old.teacher) {
+        const cls = { id: 'class_legacy', name: old.teacher.className || 'My Class', grade: old.teacher.grade || 7, prompt: old.teacher.prompt || '', code: old.teacher.code || '', color: '#F4A536' };
+        old.classes = [cls];
+        old.submissions = (old.submissions || []).map(s => ({ ...s, classId: 'class_legacy' }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(old));
+      }
+    }
     const d = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
     if (d.teacher) STATE.teacher = d.teacher;
+    if (d.classes) STATE.classes = d.classes;
     if (d.submissions) STATE.submissions = d.submissions;
   } catch(e) {}
 }
@@ -1081,6 +1185,12 @@ function teacherSetup() {
   const emailjsTemplate = document.getElementById('t-emailjs-template').value.trim();
   if (!email || !className) return showToast('Please enter your email and class name.', true);
   STATE.teacher = { email, className, grade, prompt, code, apiKey, emailjsPublic, emailjsService, emailjsTemplate };
+  // Sync to classes array — create or update the matching class entry
+  const existingIdx = STATE.classes.findIndex(c => c.code === code || c.id === 'class_legacy');
+  const classEntry = { id: existingIdx >= 0 ? STATE.classes[existingIdx].id : 'class_' + Date.now(), name: className, grade, prompt, code, color: '#F4A536' };
+  if (existingIdx >= 0) STATE.classes[existingIdx] = classEntry;
+  else STATE.classes.push(classEntry);
+  STATE.activeClassId = classEntry.id;
   saveData();
   closeModal('modal-teacher-login');
   showScreen('teacher');
@@ -1677,111 +1787,371 @@ function saveFallbackKey() {
 // ══════════════════════════════════════════
 // TEACHER DASHBOARD
 // ══════════════════════════════════════════
+
+const CLASS_COLORS = ['#F4A536','#5BA4CF','#2ECC8A','#E85D75','#A78BFA','#FB923C','#34D399'];
+
+function getActiveClass() {
+  if (!STATE.activeClassId) return null;
+  return STATE.classes.find(c => c.id === STATE.activeClassId) || null;
+}
+
+function getFilteredSubs() {
+  const activeClass = getActiveClass();
+  if (activeClass) {
+    return STATE.submissions.filter(s => s.classId === activeClass.id || s.promptCode === activeClass.code);
+  }
+  return STATE.submissions;
+}
+
 function renderTeacherDashboard() {
   const t = STATE.teacher;
   if (!t) return;
-  document.getElementById('t-class-display').textContent = t.className || 'Your Class';
 
-  const mySubs = t.code
-    ? STATE.submissions.filter(s => s.promptCode === t.code)
-    : STATE.submissions;
+  // Ensure at least one class exists
+  if (STATE.classes.length === 0 && t.className) {
+    const cls = { id: 'class_' + Date.now(), name: t.className, grade: t.grade || 7, prompt: t.prompt || '', code: t.code || '', color: CLASS_COLORS[0] };
+    STATE.classes.push(cls);
+    STATE.activeClassId = cls.id;
+    saveData();
+  }
+
+  const activeClass = getActiveClass();
+  document.getElementById('t-class-display').textContent = activeClass ? activeClass.name : 'All Classes';
+
+  const mySubs = getFilteredSubs();
+  const students = [...new Set(mySubs.map(s => s.studentName))];
+  const avgScore = mySubs.length ? Math.round(mySubs.reduce((a,b) => a + (b.overallScore||0), 0) / mySubs.length) : 0;
+  const needsHelp = students.filter(name => {
+    const last = [...mySubs.filter(s => s.studentName === name)].pop();
+    return last && (last.overallLevel || 1) <= 2;
+  });
 
   const container = document.getElementById('teacher-main-content');
 
-  // Stats
-  const students = [...new Set(mySubs.map(s => s.studentName))];
-  const avgScore = mySubs.length
-    ? Math.round(mySubs.reduce((a,b) => a + (b.overallScore||0), 0) / mySubs.length)
-    : 0;
-  const needsHelp = students.filter(name => {
-    const subs = mySubs.filter(s => s.studentName === name);
-    const last = subs[subs.length - 1];
-    return last && (last.overallLevel || 1) <= 2;
-  });
+  // Build class pills
+  const classPills = `
+    <div class="class-pills">
+      <button class="class-pill ${!STATE.activeClassId ? 'active' : ''}" onclick="setActiveClass(null)">
+        📚 All Classes <span style="opacity:0.6;font-size:0.72rem">(${STATE.submissions.length})</span>
+      </button>
+      ${STATE.classes.map(cls => {
+        const clsSubs = STATE.submissions.filter(s => s.classId === cls.id || s.promptCode === cls.code);
+        return `<button class="class-pill ${STATE.activeClassId === cls.id ? 'active' : ''}" onclick="setActiveClass('${cls.id}')">
+          <span class="class-pill-dot" style="background:${cls.color}"></span>
+          ${cls.name} <span style="opacity:0.6;font-size:0.72rem">(${clsSubs.length})</span>
+        </button>`;
+      }).join('')}
+      <button class="class-pill-add" onclick="openAddClassModal()">+ New Class</button>
+    </div>`;
 
   container.innerHTML = `
     <div class="t-header">
       <div>
-        <h1 class="t-title">📊 ${t.className || 'Teacher Dashboard'}</h1>
-        <p class="t-sub">Results sent to ${t.email} · ${mySubs.length} submissions received</p>
+        <h1 class="t-title">📊 ${activeClass ? activeClass.name : 'All Classes'}</h1>
+        <p class="t-sub">${t.email} · ${mySubs.length} submissions · ${students.length} students</p>
       </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-secondary btn-sm" onclick="openModal('modal-teacher-login')">⚙️ Settings</button>
-        <button class="btn btn-dark btn-sm" onclick="copyStudentLink()">🔗 Copy Student Link</button>
+        <button class="btn btn-secondary btn-sm" onclick="switchTeacherTab('manage')">🗂️ Manage Students</button>
+        <button class="btn btn-dark btn-sm" onclick="copyStudentLink()">🔗 Copy Link</button>
       </div>
     </div>
+
+    ${classPills}
 
     ${!t.emailjsPublic ? `
-    <div style="background:rgba(91,164,207,0.08);border:1px solid rgba(91,164,207,0.2);border-radius:12px;padding:16px 20px;margin-bottom:24px;font-size:0.875rem;color:#2A4E6A">
-      💡 <strong>Email notifications not configured.</strong> Add your EmailJS keys in Settings to get each student result emailed to ${t.email}. Until then, all results appear in this dashboard and can be exported.
-      <div style="margin-top:8px"><a href="https://www.emailjs.com/" target="_blank" style="color:var(--sky);font-weight:600">Set up EmailJS (free) →</a></div>
+    <div style="background:rgba(91,164,207,0.08);border:1px solid rgba(91,164,207,0.2);border-radius:12px;padding:14px 18px;margin-bottom:20px;font-size:0.85rem;color:#2A4E6A">
+      💡 <strong>Email notifications not set up.</strong> Add EmailJS keys in Settings to auto-email results.
+      <a href="https://www.emailjs.com/" target="_blank" style="color:var(--sky);font-weight:600;margin-left:8px">Set up free →</a>
     </div>` : ''}
 
-    <div class="t-stats">
-      <div class="t-stat"><div class="ts-label">Total Students</div><div class="ts-value">${students.length}</div><div class="ts-sub">who have submitted</div></div>
-      <div class="t-stat"><div class="ts-label">Submissions</div><div class="ts-value">${mySubs.length}</div><div class="ts-sub">total responses</div></div>
-      <div class="t-stat"><div class="ts-label">Avg Score</div><div class="ts-value">${avgScore || '—'}</div><div class="ts-sub">out of 100</div></div>
-      <div class="t-stat"><div class="ts-label">Needs Support</div><div class="ts-value" style="color:var(--rose)">${needsHelp.length}</div><div class="ts-sub">Level 1–2 students</div></div>
+    <div id="t-tab-overview">
+      <div class="t-stats">
+        <div class="t-stat"><div class="ts-label">Students</div><div class="ts-value">${students.length}</div><div class="ts-sub">have submitted</div></div>
+        <div class="t-stat"><div class="ts-label">Submissions</div><div class="ts-value">${mySubs.length}</div><div class="ts-sub">total</div></div>
+        <div class="t-stat"><div class="ts-label">Avg Score</div><div class="ts-value">${avgScore || '—'}</div><div class="ts-sub">out of 100</div></div>
+        <div class="t-stat"><div class="ts-label">Needs Support</div><div class="ts-value" style="color:var(--rose)">${needsHelp.length}</div><div class="ts-sub">Level 1–2</div></div>
+      </div>
+
+      ${students.length ? `
+      <div class="heatmap-wrap">
+        <div class="heatmap-header-bar">
+          <span class="hh-title">Skill Heatmap — ${activeClass ? activeClass.name : 'All Classes'}</span>
+          <div class="hh-legend">
+            <div class="hl-item"><div class="hl-dot" style="background:rgba(232,93,117,0.6)"></div>L1</div>
+            <div class="hl-item"><div class="hl-dot" style="background:rgba(244,165,54,0.6)"></div>L2</div>
+            <div class="hl-item"><div class="hl-dot" style="background:rgba(91,164,207,0.6)"></div>L3</div>
+            <div class="hl-item"><div class="hl-dot" style="background:rgba(46,204,138,0.6)"></div>L4-5</div>
+          </div>
+        </div>
+        <table class="heatmap-table">
+          <thead><tr>
+            <th>Student</th><th>Org</th><th>Evidence</th><th>Grammar</th>
+            <th>Sentences</th><th>Vocab</th><th>Argument</th><th>Overall</th><th></th>
+          </tr></thead>
+          <tbody>
+            ${students.map(name => {
+              const subs = mySubs.filter(s => s.studentName === name);
+              const last = subs[subs.length - 1];
+              const skills = last?.scores || {};
+              const isAlert = (last?.overallLevel || 1) <= 2;
+              const studentClass = STATE.classes.find(c => c.id === last?.classId || c.code === last?.promptCode);
+              return `<tr class="${isAlert ? 'alert-row' : ''}">
+                <td>
+                  <div class="sl-name">${name}${isAlert ? ' ⚠️' : ''}</div>
+                  ${studentClass ? `<div style="font-size:0.7rem;color:#6B8299"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${studentClass.color};margin-right:4px"></span>${studentClass.name}</div>` : ''}
+                </td>
+                ${['organization','evidence','grammar','sentence_variety','vocabulary','argument_strength'].map(sk => {
+                  const score = skills[sk];
+                  const lv = score != null ? scoreToLevel(score) : '—';
+                  return `<td><span class="hc hc${lv}">${lv === '—' ? '—' : 'L'+lv}</span></td>`;
+                }).join('')}
+                <td><span class="hc hc${last?.overallLevel || 1}">${last?.overallLevel ? 'L'+last.overallLevel : '—'}</span></td>
+                <td>
+                  <div style="display:flex;gap:4px">
+                    <button class="action-btn action-move" onclick="event.stopPropagation();openMoveStudentModal('${name}')">Move</button>
+                    <button class="action-btn action-delete" onclick="event.stopPropagation();confirmDeleteStudent('${name}')">Delete</button>
+                  </div>
+                </td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>` : ''}
+
+      <div style="font-size:1.1rem;font-family:'Playfair Display',serif;font-weight:700;margin-bottom:16px">
+        All Submissions
+        ${activeClass?.code ? `<span style="font-size:0.8rem;font-family:'DM Sans',sans-serif;font-weight:400;color:#6B8299;margin-left:12px">Code: <strong style="color:var(--amber-dark);font-family:'DM Mono',monospace">${activeClass.code}</strong></span>` : ''}
+      </div>
+      ${mySubs.length ? `
+      <div class="submissions-list">
+        <div class="sl-header">
+          <div>Student</div><div>Essay Preview</div><div>Score</div><div>Level</div><div>Date</div>
+        </div>
+        ${[...mySubs].reverse().map(sub => `
+        <div class="sl-row" onclick="viewSubmission('${sub.id}')">
+          <div>
+            <div class="sl-name">${sub.studentName}</div>
+            <div style="font-size:0.72rem;color:#6B8299">Gr.${sub.grade}${sub.period ? ' · '+sub.period : ''}</div>
+          </div>
+          <div class="sl-preview">${sub.content.substring(0,80)}…</div>
+          <div class="sl-score">${sub.overallScore || '—'}</div>
+          <div class="sl-level"><span class="hc hc${sub.overallLevel||1}">L${sub.overallLevel||'—'}</span></div>
+          <div class="sl-date">${new Date(sub.date).toLocaleDateString()}</div>
+        </div>`).join('')}
+      </div>` : `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">No submissions yet</div><p>Share the student link and prompt code so students can submit.</p></div>`}
     </div>
 
-    ${students.length ? `
-    <div class="heatmap-wrap">
-      <div class="heatmap-header-bar">
-        <span class="hh-title">Class Skill Heatmap</span>
-        <div class="hh-legend">
-          <div class="hl-item"><div class="hl-dot" style="background:rgba(232,93,117,0.6)"></div>L1</div>
-          <div class="hl-item"><div class="hl-dot" style="background:rgba(244,165,54,0.6)"></div>L2</div>
-          <div class="hl-item"><div class="hl-dot" style="background:rgba(91,164,207,0.6)"></div>L3</div>
-          <div class="hl-item"><div class="hl-dot" style="background:rgba(46,204,138,0.6)"></div>L4-5</div>
-        </div>
-      </div>
-      <table class="heatmap-table">
-        <thead><tr>
-          <th>Student</th>
-          <th>Org</th><th>Evidence</th><th>Grammar</th>
-          <th>Sentences</th><th>Vocab</th><th>Argument</th>
-          <th>Overall</th>
-        </tr></thead>
-        <tbody>
-          ${students.map(name => {
-            const subs = mySubs.filter(s => s.studentName === name);
-            const last = subs[subs.length - 1];
-            const skills = last?.scores || {};
-            const isAlert = (last?.overallLevel || 1) <= 2;
-            return `<tr class="${isAlert ? 'alert-row' : ''}">
-              <td>${name}${isAlert ? ' ⚠️' : ''}</td>
-              ${['organization','evidence','grammar','sentence_variety','vocabulary','argument_strength'].map(sk => {
-                const score = skills[sk];
-                const lv = score != null ? scoreToLevel(score) : '—';
-                return `<td><span class="hc hc${lv}" title="${SKILL_LABELS[sk]}: ${score || '—'}">${lv === '—' ? '—' : `L${lv}`}</span></td>`;
-              }).join('')}
-              <td><span class="hc hc${last?.overallLevel || 1}">${last?.overallLevel ? `L${last.overallLevel}` : '—'}</span></td>
-            </tr>`;
-          }).join('')}
-        </tbody>
-      </table>
-    </div>` : ''}
+    <div id="t-tab-manage" style="display:none">
+      ${renderManageTab()}
+    </div>`;
+}
 
-    <div style="font-size:1.1rem;font-family:'Playfair Display',serif;font-weight:700;margin-bottom:16px">All Submissions</div>
-    ${mySubs.length ? `
-    <div class="submissions-list">
-      <div class="sl-header">
-        <div>Student</div><div>Essay Preview</div>
-        <div>Score</div><div>Level</div><div>Date</div>
-      </div>
-      ${[...mySubs].reverse().map(sub => `
-      <div class="sl-row" onclick="viewSubmission('${sub.id}')">
-        <div><div class="sl-name">${sub.studentName}</div><div style="font-size:0.75rem;color:#6B8299">Gr.${sub.grade}${sub.period ? ' · ' + sub.period : ''}</div></div>
-        <div class="sl-preview">${sub.content.substring(0, 80)}…</div>
-        <div class="sl-score">${sub.overallScore || '—'}</div>
-        <div class="sl-level"><span class="hc hc${sub.overallLevel || 1}">L${sub.overallLevel || '—'}</span></div>
-        <div class="sl-date">${new Date(sub.date).toLocaleDateString()}</div>
-      </div>`).join('')}
-    </div>` : `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">No submissions yet</div><p>Share the student link so students can start submitting.</p></div>`}
+function switchTeacherTab(tab) {
+  document.getElementById('t-tab-overview').style.display = tab === 'overview' ? 'block' : 'none';
+  document.getElementById('t-tab-manage').style.display = tab === 'manage' ? 'block' : 'none';
+  STATE.teacherTab = tab;
+}
 
-    ${t.code ? `<div style="margin-top:16px;background:var(--cream-dark);border-radius:10px;padding:14px 18px;font-size:0.875rem;color:#6B8299">
-      📋 <strong style="color:var(--navy)">Student prompt code: <span class="mono" style="color:var(--amber-dark)">${t.code}</span></strong> — Share this with students so their submissions link to your class.
-    </div>` : ''}`;
+function setActiveClass(classId) {
+  STATE.activeClassId = classId;
+  renderTeacherDashboard();
+}
+
+function renderManageTab() {
+  const allStudents = [...new Set(STATE.submissions.map(s => s.studentName))];
+
+  return `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700">Manage Students & Classes</h2>
+      <button class="btn btn-primary btn-sm" onclick="openAddClassModal()">+ New Class / Group</button>
+    </div>
+
+    ${STATE.classes.length ? `
+    <div class="manage-grid">
+      ${STATE.classes.map(cls => {
+        const clsSubs = STATE.submissions.filter(s => s.classId === cls.id || s.promptCode === cls.code);
+        const clsStudents = [...new Set(clsSubs.map(s => s.studentName))];
+        return `
+        <div class="class-manage-card">
+          <div class="cmc-header">
+            <div class="cmc-color" style="background:${cls.color}"></div>
+            <div>
+              <div class="cmc-name">${cls.name}</div>
+              <div class="cmc-meta">Grade ${cls.grade}${cls.code ? ' · Code: ' + cls.code : ''}</div>
+            </div>
+          </div>
+          <div class="cmc-body">
+            <div class="cmc-stat"><span>Students</span><strong>${clsStudents.length}</strong></div>
+            <div class="cmc-stat"><span>Submissions</span><strong>${clsSubs.length}</strong></div>
+            <div class="cmc-stat"><span>Avg Score</span><strong>${clsSubs.length ? Math.round(clsSubs.reduce((a,b)=>a+(b.overallScore||0),0)/clsSubs.length) : '—'}</strong></div>
+          </div>
+          <div class="cmc-actions">
+            <button class="action-btn action-view" onclick="setActiveClass('${cls.id}');switchTeacherTab('overview')">View →</button>
+            <button class="action-btn action-move" onclick="editClassModal('${cls.id}')">Edit</button>
+            <button class="action-btn action-delete" onclick="confirmDeleteClass('${cls.id}')">Delete Class</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>` : '<p style="color:#6B8299;margin-bottom:24px">No classes yet. Create one below.</p>'}
+
+    <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;margin-bottom:14px;margin-top:8px">All Students</div>
+    ${allStudents.length ? `
+    <div class="submissions-list" style="margin-bottom:0">
+      <div class="student-manage-row" style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#6B8299;background:var(--cream)">
+        <div>Student</div><div>Class / Group</div><div>Submissions</div><div></div>
+      </div>
+      ${allStudents.map(name => {
+        const subs = STATE.submissions.filter(s => s.studentName === name);
+        const last = subs[subs.length-1];
+        const cls = STATE.classes.find(c => c.id === last?.classId || c.code === last?.promptCode);
+        return `
+        <div class="student-manage-row">
+          <div>
+            <div class="smr-name">${name}</div>
+            <div class="smr-class">Grade ${last?.grade || '—'}${last?.period ? ' · ' + last.period : ''}</div>
+          </div>
+          <div>
+            ${cls ? `<span style="display:inline-flex;align-items:center;gap:5px;font-size:0.8rem;font-weight:600;color:var(--navy)"><span style="width:8px;height:8px;border-radius:50%;background:${cls.color};display:inline-block"></span>${cls.name}</span>` : '<span style="color:#6B8299;font-size:0.8rem">Unassigned</span>'}
+          </div>
+          <div style="font-size:0.875rem;color:#6B8299">${subs.length} submission${subs.length !== 1 ? 's' : ''}</div>
+          <div class="smr-actions">
+            <button class="action-btn action-move" onclick="openMoveStudentModal('${name}')">Move to Class</button>
+            <button class="action-btn action-delete" onclick="confirmDeleteStudent('${name}')">Delete All Data</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>` : '<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">No students yet</div><p>Students will appear here once they submit writing.</p></div>'}`;
+}
+
+// ── Add / Edit Class Modal ──
+function openAddClassModal(existingId) {
+  const cls = existingId ? STATE.classes.find(c => c.id === existingId) : null;
+  const colorOptions = CLASS_COLORS.map((col, i) =>
+    `<span onclick="document.getElementById('new-cls-color').value='${col}';document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('selected'));this.classList.add('selected')"
+      class="color-swatch ${(!cls && i===0)||cls?.color===col ? 'selected' : ''}"
+      style="background:${col}"></span>`
+  ).join('');
+
+  document.getElementById('modal-add-class-content').innerHTML = `
+    <button class="modal-close" onclick="closeModal('modal-add-class')">✕</button>
+    <h2 class="modal-title">${cls ? 'Edit Class' : 'New Class / Group'}</h2>
+    <p class="modal-sub">${cls ? 'Update class details below.' : 'Create a new class or group. Students enter the code to link their submissions.'}</p>
+    <input type="hidden" id="new-cls-id" value="${cls?.id || ''}">
+    <div class="form-group">
+      <label class="form-label">Class Name <span>*</span></label>
+      <input class="form-input" id="new-cls-name" type="text" placeholder="e.g. 7th Grade ELA Period 3" value="${cls?.name || ''}">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Grade Level</label>
+        <select class="form-select" id="new-cls-grade">
+          ${[5,6,7,8,9,10,11,12].map(g => `<option value="${g}" ${(cls?.grade||7)==g?'selected':''}>${g}th Grade</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Student Code</label>
+        <input class="form-input" id="new-cls-code" type="text" placeholder="e.g. PERIOD3" style="font-family:'DM Mono',monospace;text-transform:uppercase" value="${cls?.code || ''}">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Writing Prompt</label>
+      <textarea class="form-textarea" id="new-cls-prompt" placeholder="Optional assignment prompt for this class…" style="min-height:70px">${cls?.prompt || ''}</textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Color</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">${colorOptions}</div>
+      <input type="hidden" id="new-cls-color" value="${cls?.color || CLASS_COLORS[0]}">
+    </div>
+    <button class="btn btn-primary btn-full" style="margin-top:8px" onclick="saveClass()">${cls ? 'Save Changes' : 'Create Class →'}</button>
+    ${cls ? `<button class="btn btn-secondary btn-full" style="margin-top:8px" onclick="confirmDeleteClass('${cls.id}')">🗑 Delete This Class</button>` : ''}`;
+  openModal('modal-add-class');
+}
+
+function editClassModal(id) { openAddClassModal(id); }
+
+function saveClass() {
+  const id = document.getElementById('new-cls-id').value;
+  const name = document.getElementById('new-cls-name').value.trim();
+  const grade = parseInt(document.getElementById('new-cls-grade').value);
+  const code = document.getElementById('new-cls-code').value.trim().toUpperCase();
+  const prompt = document.getElementById('new-cls-prompt').value.trim();
+  const color = document.getElementById('new-cls-color').value;
+  if (!name) return showToast('Please enter a class name.', true);
+  if (id) {
+    const idx = STATE.classes.findIndex(c => c.id === id);
+    if (idx >= 0) STATE.classes[idx] = { id, name, grade, prompt, code, color };
+  } else {
+    const newId = 'class_' + Date.now();
+    STATE.classes.push({ id: newId, name, grade, prompt, code, color });
+    STATE.activeClassId = newId;
+  }
+  saveData();
+  closeModal('modal-add-class');
+  renderTeacherDashboard();
+  showToast(id ? '✅ Class updated!' : '✅ Class created!');
+}
+
+// ── Move Student ──
+function openMoveStudentModal(studentName) {
+  if (STATE.classes.length === 0) {
+    showToast('Create a class first before moving students.', true);
+    return openAddClassModal();
+  }
+  document.getElementById('modal-move-student-content').innerHTML = `
+    <button class="modal-close" onclick="closeModal('modal-move-student')">✕</button>
+    <h2 class="modal-title">Move Student</h2>
+    <p class="modal-sub">Move all submissions for <strong>${studentName}</strong> to a different class or group.</p>
+    <div class="form-group">
+      <label class="form-label">Move to Class <span>*</span></label>
+      <select class="form-select" id="move-target-class">
+        <option value="">Select a class…</option>
+        ${STATE.classes.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+      </select>
+    </div>
+    <div style="background:rgba(244,165,54,0.08);border:1px solid rgba(244,165,54,0.2);border-radius:8px;padding:12px 14px;font-size:0.82rem;color:#7A5A10;margin-bottom:16px">
+      ℹ️ This will reassign all ${STATE.submissions.filter(s=>s.studentName===studentName).length} submission(s) from this student to the selected class.
+    </div>
+    <button class="btn btn-primary btn-full" onclick="executeMove('${studentName}')">Move Student →</button>`;
+  openModal('modal-move-student');
+}
+
+function executeMove(studentName) {
+  const targetId = document.getElementById('move-target-class').value;
+  if (!targetId) return showToast('Please select a class.', true);
+  const targetClass = STATE.classes.find(c => c.id === targetId);
+  STATE.submissions = STATE.submissions.map(s =>
+    s.studentName === studentName ? { ...s, classId: targetId, promptCode: targetClass?.code || s.promptCode } : s
+  );
+  saveData();
+  closeModal('modal-move-student');
+  renderTeacherDashboard();
+  if (STATE.teacherTab === 'manage') switchTeacherTab('manage');
+  showToast(`✅ ${studentName} moved to ${targetClass?.name}.`);
+}
+
+// ── Delete Confirmations ──
+function confirmDeleteStudent(studentName) {
+  const count = STATE.submissions.filter(s => s.studentName === studentName).length;
+  if (!confirm(`Delete ALL data for ${studentName}?\n\nThis will permanently remove ${count} submission(s) and cannot be undone.`)) return;
+  STATE.submissions = STATE.submissions.filter(s => s.studentName !== studentName);
+  saveData();
+  renderTeacherDashboard();
+  if (STATE.teacherTab === 'manage') switchTeacherTab('manage');
+  showToast(`🗑 ${studentName}'s data deleted.`);
+}
+
+function confirmDeleteClass(classId) {
+  const cls = STATE.classes.find(c => c.id === classId);
+  if (!cls) return;
+  const count = STATE.submissions.filter(s => s.classId === classId || s.promptCode === cls.code).length;
+  if (!confirm(`Delete class "${cls.name}"?\n\nThis removes the class but keeps student submissions (they become unassigned). ${count} submission(s) affected.`)) return;
+  STATE.classes = STATE.classes.filter(c => c.id !== classId);
+  if (STATE.activeClassId === classId) STATE.activeClassId = null;
+  saveData();
+  closeModal('modal-add-class');
+  renderTeacherDashboard();
+  showToast(`🗑 "${cls.name}" deleted. Student data preserved.`);
 }
 
 function viewSubmission(id) {
