@@ -55,33 +55,229 @@ h1,h2,h3,h4{font-family:'Playfair Display',serif;line-height:1.15}
 .btn-full{width:100%;justify-content:center}
 .btn:disabled{opacity:0.5;cursor:not-allowed;transform:none!important}
 
-/* ── LANDING ── */
-#screen-landing{background:var(--navy);display:flex;flex-direction:column}
-.landing-hero{
-  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:100px 5% 60px;text-align:center;position:relative;overflow:hidden;
-}
-.landing-hero::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(244,165,54,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(244,165,54,0.04) 1px,transparent 1px);background-size:60px 60px}
-.orb{position:absolute;border-radius:50%;filter:blur(90px);pointer-events:none}
-.orb1{width:500px;height:500px;background:rgba(244,165,54,0.1);top:-150px;right:-100px}
-.orb2{width:400px;height:400px;background:rgba(91,164,207,0.08);bottom:-100px;left:-100px}
-.landing-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(244,165,54,0.12);border:1px solid rgba(244,165,54,0.25);color:var(--amber-light);padding:0.4rem 1rem;border-radius:100px;font-size:0.78rem;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;margin-bottom:2rem;position:relative;z-index:1;animation:slideUp 0.5s ease}
-.badge-dot{width:6px;height:6px;border-radius:50%;background:var(--amber);animation:pulse 2s ease infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-.landing-title{font-size:clamp(2.8rem,6vw,5.5rem);font-weight:900;color:var(--white);position:relative;z-index:1;animation:slideUp 0.5s ease 0.1s both;max-width:800px}
-.landing-title em{font-style:italic;color:var(--amber);display:block}
-.landing-sub{font-size:1.1rem;color:rgba(245,240,232,0.6);max-width:520px;margin-top:1.2rem;font-weight:300;line-height:1.7;position:relative;z-index:1;animation:slideUp 0.5s ease 0.2s both}
-.landing-actions{display:flex;gap:1rem;margin-top:2.5rem;flex-wrap:wrap;justify-content:center;position:relative;z-index:1;animation:slideUp 0.5s ease 0.3s both}
-.landing-btn-student{background:var(--amber);color:var(--navy);padding:1rem 2.2rem;border-radius:10px;font-weight:700;font-size:1.05rem;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all 0.25s;box-shadow:0 4px 20px rgba(244,165,54,0.4);display:flex;align-items:center;gap:10px}
-.landing-btn-student:hover{transform:translateY(-3px);box-shadow:0 8px 32px rgba(244,165,54,0.5)}
-.landing-btn-teacher{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);color:var(--cream);padding:1rem 2.2rem;border-radius:10px;font-weight:500;font-size:1.05rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.25s;display:flex;align-items:center;gap:10px}
-.landing-btn-teacher:hover{background:rgba(255,255,255,0.12);transform:translateY(-3px)}
-.landing-features{display:flex;gap:2.5rem;margin-top:4rem;padding-top:3rem;border-top:1px solid rgba(255,255,255,0.07);position:relative;z-index:1;flex-wrap:wrap;justify-content:center;animation:slideUp 0.5s ease 0.45s both}
-.lf-item{text-align:center}
-.lf-icon{font-size:1.5rem;margin-bottom:6px}
-.lf-label{font-size:0.78rem;color:rgba(245,240,232,0.45);text-transform:uppercase;letter-spacing:0.08em;font-weight:500}
-@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+/* ══════════════════════════════════════════
+   MARKETING SITE STYLES
+══════════════════════════════════════════ */
+/* Navbar */
+#mkt-navbar{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 5%;display:flex;align-items:center;justify-content:space-between;height:70px;background:rgba(13,27,42,0.96);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.06);transition:all 0.3s}
+.nav-logo{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--cream);text-decoration:none;display:flex;align-items:center;gap:10px}
+.nav-logo-mark{width:32px;height:32px;background:var(--amber);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:900;color:var(--navy)}
+.nav-links{display:flex;gap:1.5rem;align-items:center}
+.nav-link{text-decoration:none;color:rgba(245,240,232,0.65);font-size:0.875rem;font-weight:500;transition:color 0.2s}
+.nav-link:hover{color:var(--cream)}
+.nav-cta{background:var(--amber);color:var(--navy);padding:0.45rem 1.1rem;border-radius:6px;font-weight:700;font-size:0.85rem;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s}
+.nav-cta:hover{background:var(--amber-light);transform:translateY(-1px)}
 
+/* Hero */
+.mkt-hero{min-height:100vh;background:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:110px 5% 70px;text-align:center;position:relative;overflow:hidden}
+.mkt-hero::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(244,165,54,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(244,165,54,0.04) 1px,transparent 1px);background-size:60px 60px}
+.hero-orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;animation:orbFloat 8s ease-in-out infinite}
+.hero-orb-1{width:500px;height:500px;background:rgba(244,165,54,0.12);top:-100px;right:-100px}
+.hero-orb-2{width:400px;height:400px;background:rgba(91,164,207,0.1);bottom:-80px;left:-80px;animation-delay:-4s}
+.hero-orb-3{width:300px;height:300px;background:rgba(46,204,138,0.08);top:40%;left:40%;animation-delay:-2s}
+@keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-20px) scale(1.05)}66%{transform:translate(-20px,20px) scale(0.95)}}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(244,165,54,0.12);border:1px solid rgba(244,165,54,0.3);color:var(--amber-light);padding:0.4rem 1rem;border-radius:100px;font-size:0.78rem;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;margin-bottom:1.5rem;position:relative;z-index:1;animation:mktSlideUp 0.5s ease both}
+.eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--amber);animation:pulse 2s ease infinite}
+.hero-headline{font-size:clamp(2.8rem,6vw,5.5rem);font-weight:900;color:var(--white);position:relative;z-index:1;max-width:900px;line-height:1.05;animation:mktSlideUp 0.5s ease 0.1s both}
+.hero-headline em{font-style:italic;color:var(--amber);display:block}
+.hero-sub{font-size:1.1rem;color:rgba(245,240,232,0.6);max-width:540px;margin-top:1.2rem;font-weight:300;line-height:1.7;position:relative;z-index:1;animation:mktSlideUp 0.5s ease 0.2s both}
+.hero-actions{display:flex;gap:1rem;margin-top:2.2rem;flex-wrap:wrap;justify-content:center;position:relative;z-index:1;animation:mktSlideUp 0.5s ease 0.3s both}
+.btn-teacher-outline{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);color:var(--cream);padding:0.75rem 1.6rem;border-radius:8px;font-weight:500;font-size:0.95rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;display:inline-flex;align-items:center;gap:8px}
+.btn-teacher-outline:hover{background:rgba(255,255,255,0.12);transform:translateY(-2px)}
+.hero-stats{display:flex;gap:2.5rem;margin-top:4rem;padding-top:2.5rem;border-top:1px solid rgba(255,255,255,0.07);position:relative;z-index:1;flex-wrap:wrap;justify-content:center;animation:mktSlideUp 0.5s ease 0.45s both}
+.hero-stat{text-align:center}
+.hero-stat-number{font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:900;color:var(--amber);display:block}
+.hero-stat-label{font-size:0.75rem;color:rgba(245,240,232,0.4);text-transform:uppercase;letter-spacing:0.09em;font-weight:500}
+.hero-mockup{margin-top:4rem;width:100%;max-width:960px;position:relative;z-index:1;animation:mktSlideUp 0.8s ease 0.4s both}
+.mockup-browser{background:var(--navy-mid);border:1px solid rgba(255,255,255,0.08);border-radius:14px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,0.5)}
+.mockup-bar{background:rgba(255,255,255,0.04);padding:12px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.mockup-dots{display:flex;gap:6px}
+.mockup-dot{width:11px;height:11px;border-radius:50%}
+.mockup-dot:nth-child(1){background:#FF6058}
+.mockup-dot:nth-child(2){background:#FFBD2E}
+.mockup-dot:nth-child(3){background:#28CA42}
+.mockup-url{flex:1;background:rgba(255,255,255,0.06);border-radius:5px;padding:5px 12px;font-family:'DM Mono',monospace;font-size:0.72rem;color:rgba(255,255,255,0.35);max-width:340px}
+.dashboard-preview{display:grid;grid-template-columns:200px 1fr;min-height:380px;font-size:0.75rem}
+.db-sidebar{background:rgba(13,27,42,0.8);padding:18px 14px;border-right:1px solid rgba(255,255,255,0.05)}
+.db-sidebar-title{font-family:'Playfair Display',serif;font-size:0.82rem;color:var(--amber);margin-bottom:16px;font-weight:700}
+.db-nav-item{padding:7px 9px;border-radius:5px;color:rgba(255,255,255,0.45);margin-bottom:2px;display:flex;align-items:center;gap:7px;font-size:0.75rem}
+.db-nav-item.active{background:rgba(244,165,54,0.15);color:var(--amber)}
+.db-main{background:var(--navy-mid);padding:20px}
+.db-greeting{font-family:'Playfair Display',serif;font-size:1rem;color:var(--white);margin-bottom:16px}
+.db-greeting span{color:var(--amber)}
+.db-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.db-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:12px}
+.db-card-label{color:rgba(255,255,255,0.4);margin-bottom:5px;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.05em}
+.db-card-value{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:var(--white)}
+.db-card-sub{color:var(--emerald);font-size:0.68rem;margin-top:2px}
+.db-skills{background:rgba(255,255,255,0.03);border-radius:8px;padding:12px;border:1px solid rgba(255,255,255,0.06)}
+.db-skills-title{color:rgba(255,255,255,0.4);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px}
+.db-skill-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.db-skill-name{color:rgba(255,255,255,0.55);width:70px;flex-shrink:0;font-size:0.7rem}
+.db-skill-bar-bg{flex:1;height:5px;background:rgba(255,255,255,0.07);border-radius:100px;overflow:hidden}
+.db-skill-bar{height:100%;border-radius:100px}
+.db-skill-level{color:rgba(255,255,255,0.35);width:18px;text-align:right;font-size:0.7rem}
+
+/* Sections */
+.mkt-section{padding:90px 5%}
+.mkt-white{background:var(--white)}
+.mkt-navy{background:var(--navy);position:relative;overflow:hidden}
+.mkt-navy::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(244,165,54,0.06) 0%,transparent 60%),radial-gradient(ellipse at 80% 50%,rgba(91,164,207,0.06) 0%,transparent 60%);pointer-events:none}
+.mkt-cream{background:var(--cream)}
+.mkt-cream-dark{background:var(--cream-dark)}
+.mkt-inner{max-width:1100px;margin:0 auto}
+.mkt-two-col{display:grid;grid-template-columns:1fr 1fr;gap:70px;align-items:center}
+.section-label{display:inline-flex;align-items:center;gap:8px;color:var(--amber-dark);font-size:0.78rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.8rem}
+.section-label::before{content:'';display:block;width:22px;height:2px;background:var(--amber)}
+.section-title{font-size:clamp(1.8rem,3.5vw,3rem);font-weight:700;line-height:1.15;max-width:680px}
+.section-body{font-size:1rem;color:var(--text-secondary);max-width:540px;line-height:1.75;margin-top:0.8rem}
+
+/* Stats */
+.mkt-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.mkt-stat-card{background:var(--cream);border-radius:14px;padding:22px;border:1px solid var(--border);position:relative;overflow:hidden;transition:transform 0.3s,box-shadow 0.3s}
+.mkt-stat-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-md)}
+.mkt-stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.mkt-stat-card.red::before{background:var(--rose)}
+.mkt-stat-card.amber::before{background:var(--amber)}
+.mkt-stat-card.blue::before{background:var(--sky)}
+.mkt-stat-card.green::before{background:var(--emerald)}
+.mkt-stat-num{font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:900;line-height:1;margin-bottom:6px}
+.mkt-stat-card.red .mkt-stat-num{color:var(--rose)}
+.mkt-stat-card.amber .mkt-stat-num{color:var(--amber-dark)}
+.mkt-stat-card.blue .mkt-stat-num{color:var(--sky)}
+.mkt-stat-card.green .mkt-stat-num{color:var(--emerald)}
+.mkt-stat-desc{font-size:0.82rem;color:var(--text-secondary);line-height:1.5}
+
+/* Steps */
+.mkt-steps{display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin-top:3.5rem;position:relative;align-items:start}
+.mkt-steps-line{position:absolute;top:34px;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,rgba(244,165,54,0.3),rgba(244,165,54,0.3),transparent)}
+.mkt-step{text-align:center;padding:0 8px;position:relative;z-index:1}
+.mkt-step-num{width:68px;height:68px;border-radius:50%;background:rgba(244,165,54,0.1);border:1px solid rgba(244,165,54,0.25);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:900;color:var(--amber);transition:all 0.3s}
+.mkt-step:hover .mkt-step-num{background:rgba(244,165,54,0.2);border-color:var(--amber);transform:scale(1.08)}
+.mkt-step-icon{font-size:1.6rem;margin-bottom:10px}
+.mkt-step h4{font-size:0.875rem;color:var(--white);margin-bottom:6px;font-family:'DM Sans',sans-serif;font-weight:600}
+.mkt-step p{font-size:0.75rem;color:rgba(245,240,232,0.4);line-height:1.55}
+
+/* Features */
+.mkt-features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.mkt-feature-card{background:var(--white);border-radius:18px;padding:32px 28px;border:1px solid var(--border);transition:all 0.3s cubic-bezier(0.23,1,0.32,1)}
+.mkt-feature-card:hover{transform:translateY(-5px);box-shadow:var(--shadow-lg);border-color:rgba(244,165,54,0.2)}
+.mkt-featured{background:var(--navy);border-color:var(--navy);grid-column:span 2}
+.mkt-feat-inner{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:center}
+.mkt-feat-icon{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:20px}
+.mkt-feat-tag{display:inline-block;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;padding:3px 9px;border-radius:100px;background:rgba(244,165,54,0.15);color:var(--amber-light);margin-bottom:10px}
+.mkt-feature-card:not(.mkt-featured) .mkt-feat-tag{background:var(--cream);color:var(--text-muted);border:1px solid var(--border)}
+.mkt-feat-title{font-size:1.1rem;font-family:'DM Sans',sans-serif;font-weight:700;margin-bottom:8px;color:var(--white)}
+.mkt-feature-card:not(.mkt-featured) .mkt-feat-title{color:var(--navy)}
+.mkt-feat-body{font-size:0.875rem;color:rgba(245,240,232,0.55);line-height:1.6}
+.mkt-feature-card:not(.mkt-featured) .mkt-feat-body{color:var(--text-secondary)}
+.mkt-feat-visual{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:16px}
+.mkt-skill-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;font-size:0.72rem}
+.mkt-skill-row span:first-child{color:rgba(255,255,255,0.55);width:75px;flex-shrink:0}
+.mkt-skill-row span:last-child{color:rgba(255,255,255,0.4);font-family:'DM Mono',monospace;width:26px;text-align:right}
+.mkt-skill-track{flex:1;height:6px;background:rgba(255,255,255,0.07);border-radius:100px;overflow:hidden}
+.mkt-skill-track div{height:100%;border-radius:100px}
+
+/* Personas */
+.mkt-persona-tabs{display:flex;background:var(--cream-dark);border-radius:10px;padding:4px;max-width:fit-content;border:1px solid var(--border);margin-bottom:2.5rem}
+.mkt-ptab{padding:0.6rem 1.4rem;border-radius:8px;font-weight:600;font-size:0.875rem;cursor:pointer;transition:all 0.2s;color:#6B8299;border:none;background:none;font-family:'DM Sans',sans-serif}
+.mkt-ptab.active{background:var(--navy);color:var(--white);box-shadow:0 2px 8px rgba(13,27,42,0.2)}
+.mkt-pcontent{display:none;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.mkt-pcontent.active{display:grid}
+.mkt-plist{list-style:none;margin-top:1.2rem}
+.mkt-plist li{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);font-size:0.9rem;color:var(--text-secondary)}
+.mkt-plist li:last-child{border-bottom:none}
+.mkt-pcheck{width:20px;height:20px;border-radius:50%;background:var(--emerald);color:white;display:flex;align-items:center;justify-content:center;font-size:0.6rem;flex-shrink:0;margin-top:1px}
+.mkt-pmockup{background:var(--navy);border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);box-shadow:var(--shadow-lg)}
+.mkt-pm-header{background:rgba(255,255,255,0.04);padding:18px 20px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between}
+.mkt-pm-badge{background:rgba(244,165,54,0.2);color:var(--amber);padding:3px 10px;border-radius:100px;font-size:0.7rem;font-weight:600}
+.mkt-fb{display:flex;gap:10px;padding:10px 12px;border-radius:8px;margin-bottom:8px}
+.mkt-fb.strength{background:rgba(46,204,138,0.08);border:1px solid rgba(46,204,138,0.15)}
+.mkt-fb.improve{background:rgba(244,165,54,0.08);border:1px solid rgba(244,165,54,0.15)}
+
+/* Testimonials */
+.mkt-testimonials{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:2.5rem}
+.mkt-testimonial{background:var(--white);border-radius:18px;padding:28px;border:1px solid var(--border);position:relative;transition:transform 0.3s,box-shadow 0.3s}
+.mkt-testimonial:hover{transform:translateY(-4px);box-shadow:var(--shadow-md)}
+.mkt-testimonial::before{content:'\201C';font-family:'Playfair Display',serif;font-size:4.5rem;line-height:0.5;color:var(--amber);opacity:0.2;position:absolute;top:24px;left:20px}
+.mkt-stars{color:var(--amber);font-size:0.82rem;letter-spacing:2px;margin-bottom:12px}
+.mkt-testimonial p{font-size:0.9rem;line-height:1.65;color:var(--text-secondary);margin-bottom:20px;padding-top:16px}
+.mkt-author{display:flex;align-items:center;gap:10px}
+.mkt-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;color:white;flex-shrink:0}
+.mkt-author strong{display:block;font-size:0.875rem;color:var(--navy)}
+.mkt-author span{font-size:0.78rem;color:var(--text-muted)}
+
+/* Pricing */
+.mkt-pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;text-align:left}
+.mkt-price-card{border-radius:18px;padding:32px 28px;border:1px solid var(--border);background:var(--cream);transition:transform 0.3s,box-shadow 0.3s;position:relative}
+.mkt-price-card:hover{transform:translateY(-5px);box-shadow:var(--shadow-lg)}
+.mkt-popular{background:var(--navy);border-color:var(--navy);transform:scale(1.02)}
+.mkt-popular:hover{transform:translateY(-5px) scale(1.03)}
+.mkt-popular-badge{position:absolute;top:18px;right:18px;background:var(--amber);color:var(--navy);font-size:0.68rem;font-weight:700;padding:3px 9px;border-radius:100px;text-transform:uppercase;letter-spacing:0.05em}
+.mkt-price-tier{font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--amber-dark);margin-bottom:6px}
+.mkt-popular .mkt-price-tier{color:var(--amber)}
+.mkt-price-num{font-family:'Playfair Display',serif;font-size:2.8rem;font-weight:900;line-height:1;color:var(--navy);margin-bottom:4px}
+.mkt-price-num span{font-size:1rem;font-weight:400;color:var(--text-muted)}
+.mkt-popular .mkt-price-num{color:var(--white)}
+.mkt-popular .mkt-price-num span{color:rgba(255,255,255,0.5)}
+.mkt-price-period{font-size:0.8rem;color:var(--text-muted);margin-bottom:20px}
+.mkt-popular .mkt-price-period{color:rgba(255,255,255,0.45)}
+.mkt-price-list{list-style:none;margin-bottom:24px}
+.mkt-price-list li{font-size:0.85rem;color:var(--text-secondary);padding:7px 0;border-bottom:1px solid var(--border)}
+.mkt-price-list li:last-child{border-bottom:none}
+.mkt-popular .mkt-price-list li{color:rgba(255,255,255,0.6);border-color:rgba(255,255,255,0.08)}
+
+/* Integrations */
+.mkt-int-logos{display:flex;gap:1.2rem;flex-wrap:wrap;justify-content:center}
+.mkt-int-logo{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:12px 20px;font-weight:600;font-size:0.875rem;color:var(--text-secondary);display:flex;align-items:center;gap:7px;transition:all 0.2s;cursor:default}
+.mkt-int-logo:hover{border-color:var(--amber);color:var(--navy);transform:translateY(-2px);box-shadow:var(--shadow-sm)}
+
+/* CTA */
+.mkt-cta{background:var(--navy);padding:90px 5%;text-align:center;position:relative;overflow:hidden}
+.mkt-cta::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(244,165,54,0.1) 0%,transparent 70%)}
+
+/* Footer */
+.mkt-footer{background:#07111A;color:rgba(245,240,232,0.4);padding:56px 5% 28px}
+.mkt-footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px}
+.footer-logo-wrap{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:var(--cream);display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.mkt-footer-title{font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--cream);margin-bottom:14px}
+.mkt-footer-links{list-style:none}
+.mkt-footer-links li{margin-bottom:9px}
+.mkt-footer-links a{text-decoration:none;color:rgba(245,240,232,0.35);font-size:0.85rem;transition:color 0.2s}
+.mkt-footer-links a:hover{color:var(--cream)}
+.mkt-footer-bottom{padding-top:22px;border-top:1px solid rgba(255,255,255,0.06);display:flex;justify-content:space-between;align-items:center;font-size:0.78rem;flex-wrap:wrap;gap:10px}
+.mkt-footer-bottom a{color:rgba(245,240,232,0.3);text-decoration:none;transition:color 0.2s}
+.mkt-footer-bottom a:hover{color:var(--cream)}
+
+/* Scroll reveal */
+.mkt-reveal{opacity:0;transform:translateY(24px);transition:opacity 0.6s ease,transform 0.6s ease}
+.mkt-reveal.visible{opacity:1;transform:translateY(0)}
+@keyframes mktSlideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* Landing screen scroll */
+#screen-landing{overflow-y:auto;height:100vh}
+
+/* Responsive */
+@media(max-width:900px){
+  .mkt-two-col,.mkt-pcontent.active,.mkt-feat-inner{grid-template-columns:1fr;gap:36px}
+  .mkt-features-grid{grid-template-columns:1fr}
+  .mkt-featured{grid-column:span 1}
+  .mkt-testimonials,.mkt-pricing-grid{grid-template-columns:1fr}
+  .mkt-popular{transform:none}
+  .mkt-steps{grid-template-columns:1fr 1fr;gap:20px}
+  .mkt-steps-line{display:none}
+  .mkt-footer-grid{grid-template-columns:1fr 1fr}
+  .nav-links{display:none}
+  .dashboard-preview{grid-template-columns:1fr}
+  .db-sidebar{display:none}
+  .db-cards{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+  .hero-headline{font-size:2.4rem}
+  .mkt-steps{grid-template-columns:1fr}
+  .mkt-footer-grid{grid-template-columns:1fr}
+  .mkt-stats-grid{grid-template-columns:1fr}
+}
 /* ── SETUP MODAL / FORM ── */
 .modal-bg{position:fixed;inset:0;background:rgba(7,17,26,0.85);backdrop-filter:blur(8px);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn 0.2s ease}
 .modal-bg.hidden{display:none}
@@ -306,31 +502,283 @@ h1,h2,h3,h4{font-family:'Playfair Display',serif;line-height:1.15}
 <div class="toast hidden" id="toast"></div>
 
 <!-- ══════════════════════════════════════════
-     SCREEN: LANDING
+     SCREEN: LANDING (full marketing site)
 ══════════════════════════════════════════ -->
 <div class="screen active" id="screen-landing">
-  <div class="landing-hero">
-    <div class="orb orb1"></div>
-    <div class="orb orb2"></div>
-    <div class="landing-badge"><div class="badge-dot"></div> Lynn Public Schools — Beta Pilot</div>
-    <h1 class="landing-title">Every student can become<em>a stronger writer.</em></h1>
-    <p class="landing-sub">AI-powered writing assessment, personalized feedback, and targeted practice — built for every skill level.</p>
-    <div class="landing-actions">
-      <button class="landing-btn-student" onclick="openModal('modal-student')">
-        ✍️ I'm a Student
-      </button>
-      <button class="landing-btn-teacher" onclick="openModal('modal-teacher-login')">
-        📊 I'm a Teacher
-      </button>
-    </div>
-    <div class="landing-features">
-      <div class="lf-item"><div class="lf-icon">⚡</div><div class="lf-label">Instant Feedback</div></div>
-      <div class="lf-item"><div class="lf-icon">🎯</div><div class="lf-label">Targeted Practice</div></div>
-      <div class="lf-item"><div class="lf-icon">📈</div><div class="lf-label">Skill Tracking</div></div>
-      <div class="lf-item"><div class="lf-icon">🏆</div><div class="lf-label">Achievements</div></div>
+
+<!-- ── NAVBAR ── -->
+<nav id="mkt-navbar">
+  <a href="#" class="nav-logo" onclick="document.getElementById('screen-landing').scrollTop=0;return false;">
+    <div class="nav-logo-mark">W</div>WriteLift
+  </a>
+  <div class="nav-links">
+    <a href="#how-it-works" class="nav-link">How It Works</a>
+    <a href="#features" class="nav-link">Features</a>
+    <a href="#for-teachers" class="nav-link">For Teachers</a>
+    <a href="#pricing" class="nav-link">Pricing</a>
+    <button class="nav-link" style="background:none;border:none;cursor:pointer;font-size:0.9rem;font-weight:500;color:var(--text-secondary);font-family:'DM Sans',sans-serif;" onclick="openModal('modal-teacher-login')">Teacher Login</button>
+    <button class="nav-cta" onclick="openModal('modal-student')">Start Writing →</button>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="mkt-hero">
+  <div class="hero-orb hero-orb-1"></div>
+  <div class="hero-orb hero-orb-2"></div>
+  <div class="hero-orb hero-orb-3"></div>
+  <div class="hero-eyebrow"><div class="eyebrow-dot"></div>Now in Beta — Accepting Classrooms</div>
+  <h1 class="hero-headline">Every student can become<em>a stronger writer.</em></h1>
+  <p class="hero-sub">WriteLift AI meets students exactly where they are — from struggling below grade level to advanced — and builds real writing skills through personalized feedback, adaptive practice, and leveled reading.</p>
+  <div class="hero-actions">
+    <button class="btn-primary" onclick="openModal('modal-student')">✍️ Start Writing →</button>
+    <a href="#how-it-works" class="btn-secondary">▶ See How It Works</a>
+    <button class="btn-teacher-outline" onclick="openModal('modal-teacher-login')">📊 Teacher Login</button>
+  </div>
+  <div class="hero-stats">
+    <div class="hero-stat"><span class="hero-stat-number">6</span><span class="hero-stat-label">Skill Dimensions</span></div>
+    <div class="hero-stat"><span class="hero-stat-number">5</span><span class="hero-stat-label">Proficiency Levels</span></div>
+    <div class="hero-stat"><span class="hero-stat-number">LTI 1.3</span><span class="hero-stat-label">Schoology Ready</span></div>
+    <div class="hero-stat"><span class="hero-stat-number">FERPA</span><span class="hero-stat-label">Compliant</span></div>
+  </div>
+  <div class="hero-mockup">
+    <div class="mockup-browser">
+      <div class="mockup-bar">
+        <div class="mockup-dots"><div class="mockup-dot"></div><div class="mockup-dot"></div><div class="mockup-dot"></div></div>
+        <div class="mockup-url">app.writelift.ai/student/dashboard</div>
+      </div>
+      <div class="mockup-content">
+        <div class="dashboard-preview">
+          <div class="db-sidebar">
+            <div class="db-sidebar-title">WriteLift AI</div>
+            <div class="db-nav-item active"><span class="db-nav-icon">⌂</span> Dashboard</div>
+            <div class="db-nav-item"><span class="db-nav-icon">✍️</span> My Writing</div>
+            <div class="db-nav-item"><span class="db-nav-icon">📚</span> Practice</div>
+            <div class="db-nav-item"><span class="db-nav-icon">🏆</span> Milestones</div>
+          </div>
+          <div class="db-main">
+            <div class="db-greeting">Good morning, <span>Alex</span> 👋</div>
+            <div class="db-cards">
+              <div class="db-card"><div class="db-card-label">Writing Level</div><div class="db-card-value">3.2</div><div class="db-card-sub">↑ +0.4 this week</div></div>
+              <div class="db-card"><div class="db-card-label">Submissions</div><div class="db-card-value">12</div><div class="db-card-sub" style="color:var(--sky)">3 pending feedback</div></div>
+              <div class="db-card"><div class="db-card-label">Exercises Done</div><div class="db-card-value">8</div><div class="db-card-sub" style="color:var(--amber)">2 new assigned</div></div>
+            </div>
+            <div class="db-skills">
+              <div class="db-skills-title">Skill Levels</div>
+              <div class="db-skill-row"><span class="db-skill-name">Organization</span><div class="db-skill-bar-bg"><div class="db-skill-bar" style="width:72%;background:var(--amber)"></div></div><span class="db-skill-level">4</span></div>
+              <div class="db-skill-row"><span class="db-skill-name">Grammar</span><div class="db-skill-bar-bg"><div class="db-skill-bar" style="width:56%;background:var(--sky)"></div></div><span class="db-skill-level">3</span></div>
+              <div class="db-skill-row"><span class="db-skill-name">Evidence</span><div class="db-skill-bar-bg"><div class="db-skill-bar" style="width:44%;background:var(--rose)"></div></div><span class="db-skill-level">2</span></div>
+              <div class="db-skill-row"><span class="db-skill-name">Vocabulary</span><div class="db-skill-bar-bg"><div class="db-skill-bar" style="width:60%;background:var(--emerald)"></div></div><span class="db-skill-level">3</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-</div>
+</section>
+
+<!-- ── PROBLEM ── -->
+<section class="mkt-section mkt-white" id="problem">
+  <div class="mkt-inner mkt-two-col">
+    <div>
+      <div class="section-label mkt-reveal">The Challenge</div>
+      <h2 class="section-title mkt-reveal" style="transition-delay:0.1s">Most students never get the writing feedback they need.</h2>
+      <p class="section-body mkt-reveal" style="transition-delay:0.2s">One teacher. Thirty students. Forty-five minutes. Traditional classroom writing instruction leaves too many students behind — especially those already struggling below grade level. WriteLift changes that equation.</p>
+      <p class="section-body mkt-reveal" style="margin-top:1rem;transition-delay:0.3s">By combining AI assessment with scaffolded practice, every student gets immediate, specific, actionable feedback — not just a letter grade.</p>
+    </div>
+    <div class="mkt-stats-grid">
+      <div class="mkt-stat-card red mkt-reveal"><div class="mkt-stat-num">27%</div><div class="mkt-stat-desc">of 8th graders perform below basic writing proficiency on NAEP</div></div>
+      <div class="mkt-stat-card amber mkt-reveal" style="transition-delay:0.1s"><div class="mkt-stat-num">3×</div><div class="mkt-stat-desc">More likely to disengage when feedback comes days after submission</div></div>
+      <div class="mkt-stat-card blue mkt-reveal" style="transition-delay:0.2s"><div class="mkt-stat-num">73%</div><div class="mkt-stat-desc">of teachers report insufficient time to give detailed writing feedback</div></div>
+      <div class="mkt-stat-card green mkt-reveal" style="transition-delay:0.3s"><div class="mkt-stat-num">+2.4×</div><div class="mkt-stat-desc">Improvement in writing scores with structured, targeted practice</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section class="mkt-section mkt-navy" id="how-it-works">
+  <div class="mkt-inner">
+    <div class="section-label" style="color:var(--amber-light)">The Process</div>
+    <h2 class="section-title" style="color:var(--white);max-width:500px">A writing loop that actually closes.</h2>
+    <p class="section-body" style="color:rgba(245,240,232,0.55)">From submission to skill growth in minutes — not days.</p>
+    <div class="mkt-steps">
+      <div class="mkt-steps-line"></div>
+      <div class="mkt-step mkt-reveal"><div class="mkt-step-num">1</div><div class="mkt-step-icon">✍️</div><h4>Student Writes</h4><p>Submit any writing — essays, paragraphs, narratives — in the platform or via Schoology.</p></div>
+      <div class="mkt-step mkt-reveal" style="transition-delay:0.1s"><div class="mkt-step-num">2</div><div class="mkt-step-icon">🤖</div><h4>AI Assesses</h4><p>GPT-4o scores 6 skill areas with grade-level calibrated rubrics and Common Core alignment.</p></div>
+      <div class="mkt-step mkt-reveal" style="transition-delay:0.2s"><div class="mkt-step-num">3</div><div class="mkt-step-icon">💬</div><h4>Feedback Delivered</h4><p>Color-coded highlights show strengths and specific, rewritten improvement examples.</p></div>
+      <div class="mkt-step mkt-reveal" style="transition-delay:0.3s"><div class="mkt-step-num">4</div><div class="mkt-step-icon">🎯</div><h4>Practice Assigned</h4><p>Up to 3 micro-skill exercises auto-generated for the student's exact weaknesses.</p></div>
+      <div class="mkt-step mkt-reveal" style="transition-delay:0.4s"><div class="mkt-step-num">5</div><div class="mkt-step-icon">📈</div><h4>Skills Tracked</h4><p>Rolling mastery profiles update automatically. Teachers see real-time growth heatmaps.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FEATURES ── -->
+<section class="mkt-section mkt-cream" id="features">
+  <div class="mkt-inner">
+    <div class="section-label mkt-reveal">Platform Features</div>
+    <h2 class="section-title mkt-reveal" style="transition-delay:0.1s;margin-bottom:2.5rem">Everything the classroom needs. Nothing it doesn't.</h2>
+    <div class="mkt-features-grid">
+      <div class="mkt-feature-card mkt-featured mkt-reveal">
+        <div class="mkt-feat-inner">
+          <div><div class="mkt-feat-icon" style="background:rgba(244,165,54,0.15)">🧠</div><div class="mkt-feat-tag">Core Engine</div><div class="mkt-feat-title">AI Assessment Across 6 Skill Dimensions</div><div class="mkt-feat-body">Every submission is instantly scored on Organization, Evidence, Grammar, Sentence Variety, Vocabulary, and Argument Strength — each on a 1–5 proficiency scale calibrated to grade level.</div></div>
+          <div class="mkt-feat-visual">
+            <div style="font-size:0.7rem;color:rgba(255,255,255,0.35);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.06em">Assessment Result</div>
+            <div class="mkt-skill-row"><span>Organization</span><div class="mkt-skill-track"><div style="width:85%;background:var(--amber)"></div></div><span>85</span></div>
+            <div class="mkt-skill-row"><span>Evidence</span><div class="mkt-skill-track"><div style="width:62%;background:var(--sky)"></div></div><span>62</span></div>
+            <div class="mkt-skill-row"><span>Grammar</span><div class="mkt-skill-track"><div style="width:78%;background:var(--emerald)"></div></div><span>78</span></div>
+            <div class="mkt-skill-row"><span>Vocabulary</span><div class="mkt-skill-track"><div style="width:45%;background:var(--rose)"></div></div><span>45</span></div>
+            <div class="mkt-skill-row"><span>Sentences</span><div class="mkt-skill-track"><div style="width:70%;background:var(--amber)"></div></div><span>70</span></div>
+            <div class="mkt-skill-row" style="margin-bottom:0"><span>Argument</span><div class="mkt-skill-track"><div style="width:58%;background:var(--sky)"></div></div><span>58</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="mkt-feature-card mkt-reveal"><div class="mkt-feat-icon" style="background:rgba(244,165,54,0.1)">🪜</div><div class="mkt-feat-tag">Scaffolding</div><div class="mkt-feat-title">Built for Students Below Grade Level</div><div class="mkt-feat-body">Stepwise prompts guide struggling writers from single sentences to full paragraphs. Micro-skill focus drills the exact gaps holding students back.</div></div>
+      <div class="mkt-feature-card mkt-reveal" style="transition-delay:0.1s"><div class="mkt-feat-icon" style="background:rgba(91,164,207,0.1)">📖</div><div class="mkt-feat-tag">Adaptive Content</div><div class="mkt-feat-title">Leveled Readings Auto-Assigned</div><div class="mkt-feat-body">The platform matches each student to reading material at their current Lexile level — and gradually scaffolds upward as skills improve.</div></div>
+      <div class="mkt-feature-card mkt-reveal" style="transition-delay:0.2s"><div class="mkt-feat-icon" style="background:rgba(46,204,138,0.1)">🗺️</div><div class="mkt-feat-tag">Teacher View</div><div class="mkt-feat-title">Visual Skill Heatmaps</div><div class="mkt-feat-body">See the whole class's skill matrix at a glance. Identify students who need intervention before they fall further behind, with weekly alerts.</div></div>
+      <div class="mkt-feature-card mkt-reveal" style="transition-delay:0.1s"><div class="mkt-feat-icon" style="background:rgba(232,93,117,0.1)">🔗</div><div class="mkt-feat-tag">LMS Integration</div><div class="mkt-feat-title">Schoology LTI 1.3 + Grade Passback</div><div class="mkt-feat-body">Launch from Schoology, sync rosters automatically, and push scores back as grades. No separate login. No extra steps for students.</div></div>
+      <div class="mkt-feature-card mkt-reveal" style="transition-delay:0.2s"><div class="mkt-feat-icon" style="background:rgba(244,165,54,0.1)">🏆</div><div class="mkt-feat-tag">Motivation</div><div class="mkt-feat-title">Milestone Achievements</div><div class="mkt-feat-body">Students earn milestones as skills grow — from "First Submission" to "Grammar Champion." Progress is always visible and celebrated.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOR TEACHERS / STUDENTS ── -->
+<section class="mkt-section mkt-white" id="for-teachers">
+  <div class="mkt-inner">
+    <div class="section-label mkt-reveal">Who It's For</div>
+    <h2 class="section-title mkt-reveal" style="transition-delay:0.1s;margin-bottom:1.5rem">Designed for everyone in the classroom.</h2>
+    <div class="mkt-persona-tabs mkt-reveal" style="transition-delay:0.2s">
+      <button class="mkt-ptab active" onclick="switchMktTab('student')">For Students</button>
+      <button class="mkt-ptab" onclick="switchMktTab('teacher')">For Teachers</button>
+    </div>
+    <div class="mkt-pcontent active" id="mkt-tab-student">
+      <div>
+        <h3 style="font-size:1.8rem;margin-bottom:6px">Your writing coach, always available.</h3>
+        <p style="color:var(--text-secondary)">Instant feedback. No waiting for papers to be returned.</p>
+        <ul class="mkt-plist">
+          <li><div class="mkt-pcheck">✓</div>Submit writing and get detailed feedback in under 30 seconds</li>
+          <li><div class="mkt-pcheck">✓</div>See exactly which sentences are strong and which need improvement</li>
+          <li><div class="mkt-pcheck">✓</div>Practice the specific skills you're weakest at — not generic exercises</li>
+          <li><div class="mkt-pcheck">✓</div>Track your growth across all 6 writing dimensions over time</li>
+          <li><div class="mkt-pcheck">✓</div>Earn achievements as you reach new proficiency levels</li>
+        </ul>
+        <button class="btn btn-primary" style="margin-top:24px" onclick="openModal('modal-student')">✍️ Start Writing Now</button>
+      </div>
+      <div class="mkt-pmockup">
+        <div class="mkt-pm-header"><span style="font-family:'Playfair Display',serif;color:var(--white)">Writing Feedback</span><span class="mkt-pm-badge">Level 3.2</span></div>
+        <div style="padding:20px">
+          <div style="font-size:0.7rem;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px">Your Strengths ✓</div>
+          <div class="mkt-fb strength"><span>🟢</span><div style="font-size:0.82rem;color:rgba(255,255,255,0.7)"><strong style="color:var(--white)">"The evidence clearly supports the thesis"</strong> — Great use of specific data to back your argument.</div></div>
+          <div style="font-size:0.7rem;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.07em;margin:14px 0 10px">Improvements →</div>
+          <div class="mkt-fb improve"><span>🟡</span><div style="font-size:0.82rem;color:rgba(255,255,255,0.7)"><strong style="color:var(--white)">"However the students they said"</strong> — Try: <em style="color:var(--amber-light)">"Despite these challenges, students argue..."</em></div></div>
+          <div style="margin-top:14px;background:rgba(244,165,54,0.1);border:1px solid rgba(244,165,54,0.2);border-radius:8px;padding:10px;font-size:0.8rem;color:rgba(255,255,255,0.7)">🎯 <strong style="color:var(--amber)">Next Step:</strong> Practice exercise assigned — Using Evidence with Analysis.</div>
+        </div>
+      </div>
+    </div>
+    <div class="mkt-pcontent" id="mkt-tab-teacher">
+      <div>
+        <h3 style="font-size:1.8rem;margin-bottom:6px">See every student. Scale your impact.</h3>
+        <p style="color:var(--text-secondary)">From 30 students to 30 personalized learning paths.</p>
+        <ul class="mkt-plist">
+          <li><div class="mkt-pcheck">✓</div>Instant visual heatmap of every student's skill levels</li>
+          <li><div class="mkt-pcheck">✓</div>Automatic alerts when students haven't engaged in 7+ days</li>
+          <li><div class="mkt-pcheck">✓</div>Create assignments with one click; AI handles the rest</li>
+          <li><div class="mkt-pcheck">✓</div>Grades sync directly back to Schoology via LTI grade passback</li>
+          <li><div class="mkt-pcheck">✓</div>Track growth trends per student and per skill over the semester</li>
+          <li><div class="mkt-pcheck">✓</div>Common Core standards alignment reported automatically</li>
+        </ul>
+        <button class="btn btn-primary" style="margin-top:24px" onclick="openModal('modal-teacher-login')">📊 Open Teacher Dashboard</button>
+      </div>
+      <div class="mkt-pmockup">
+        <div class="mkt-pm-header"><span style="font-family:'Playfair Display',serif;color:var(--white)">Class Skill Heatmap</span><span class="mkt-pm-badge">7th Grade ELA</span></div>
+        <div style="padding:16px;overflow-x:auto">
+          <table style="width:100%;border-collapse:separate;border-spacing:0;font-size:0.72rem">
+            <tr><th style="text-align:left;color:rgba(255,255,255,0.35);padding:4px 8px;font-weight:600">Student</th><th style="color:rgba(255,255,255,0.35);padding:4px;font-weight:600">Org</th><th style="color:rgba(255,255,255,0.35);padding:4px;font-weight:600">Evid</th><th style="color:rgba(255,255,255,0.35);padding:4px;font-weight:600">Gram</th><th style="color:rgba(255,255,255,0.35);padding:4px;font-weight:600">Sent</th><th style="color:rgba(255,255,255,0.35);padding:4px;font-weight:600">Vocab</th><th style="color:rgba(255,255,255,0.35);padding:4px;font-weight:600">Arg</th></tr>
+            <tr><td style="color:rgba(255,255,255,0.7);padding:5px 8px">Alex R.</td><td style="text-align:center;padding:3px"><span class="hc hc4">L4</span></td><td style="text-align:center;padding:3px"><span class="hc hc2">L2</span></td><td style="text-align:center;padding:3px"><span class="hc hc3">L3</span></td><td style="text-align:center;padding:3px"><span class="hc hc4">L4</span></td><td style="text-align:center;padding:3px"><span class="hc hc3">L3</span></td><td style="text-align:center;padding:3px"><span class="hc hc2">L2</span></td></tr>
+            <tr><td style="color:rgba(255,255,255,0.7);padding:5px 8px">Jordan L.</td><td style="text-align:center;padding:3px"><span class="hc hc2">L2</span></td><td style="text-align:center;padding:3px"><span class="hc hc1">L1</span></td><td style="text-align:center;padding:3px"><span class="hc hc2">L2</span></td><td style="text-align:center;padding:3px"><span class="hc hc2">L2</span></td><td style="text-align:center;padding:3px"><span class="hc hc1">L1</span></td><td style="text-align:center;padding:3px"><span class="hc hc2">L2</span></td></tr>
+            <tr><td style="color:rgba(255,255,255,0.7);padding:5px 8px">Sam C.</td><td style="text-align:center;padding:3px"><span class="hc hc5">L5</span></td><td style="text-align:center;padding:3px"><span class="hc hc4">L4</span></td><td style="text-align:center;padding:3px"><span class="hc hc5">L5</span></td><td style="text-align:center;padding:3px"><span class="hc hc4">L4</span></td><td style="text-align:center;padding:3px"><span class="hc hc5">L5</span></td><td style="text-align:center;padding:3px"><span class="hc hc4">L4</span></td></tr>
+            <tr><td style="color:rgba(255,255,255,0.7);padding:5px 8px">Maya P.</td><td style="text-align:center;padding:3px"><span class="hc hc3">L3</span></td><td style="text-align:center;padding:3px"><span class="hc hc3">L3</span></td><td style="text-align:center;padding:3px"><span class="hc hc2">L2</span></td><td style="text-align:center;padding:3px"><span class="hc hc3">L3</span></td><td style="text-align:center;padding:3px"><span class="hc hc3">L3</span></td><td style="text-align:center;padding:3px"><span class="hc hc3">L3</span></td></tr>
+          </table>
+          <div style="margin-top:12px;background:rgba(232,93,117,0.1);border:1px solid rgba(232,93,117,0.2);border-radius:8px;padding:10px;font-size:0.78rem;color:rgba(255,255,255,0.7)">⚠️ <strong style="color:var(--rose)">Alert:</strong> Jordan L. needs immediate support.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TESTIMONIALS ── -->
+<section class="mkt-section mkt-cream-dark">
+  <div class="mkt-inner">
+    <div class="section-label mkt-reveal">Early Feedback</div>
+    <h2 class="section-title mkt-reveal" style="transition-delay:0.1s">Beta teachers are already seeing results.</h2>
+    <div class="mkt-testimonials">
+      <div class="mkt-testimonial mkt-reveal"><div class="mkt-stars">★★★★★</div><p>"My struggling writers finally understand what they need to work on. One student went from a Level 1 to Level 3 in six weeks."</p><div class="mkt-author"><div class="mkt-avatar" style="background:linear-gradient(135deg,var(--amber),var(--amber-dark))">SJ</div><div><strong>Sarah Johnson</strong><span>7th Grade ELA, Springfield Middle</span></div></div></div>
+      <div class="mkt-testimonial mkt-reveal" style="transition-delay:0.1s"><div class="mkt-stars">★★★★★</div><p>"The Schoology integration was seamless. Students are submitting more because they get feedback immediately instead of waiting a week."</p><div class="mkt-author"><div class="mkt-avatar" style="background:linear-gradient(135deg,var(--sky),#3A7DB5)">MR</div><div><strong>Michael Rodriguez</strong><span>ELA Dept Head, Lincoln USD</span></div></div></div>
+      <div class="mkt-testimonial mkt-reveal" style="transition-delay:0.2s"><div class="mkt-stars">★★★★★</div><p>"The heatmap alone saves me hours every week. I open WriteLift and know instantly which skills to address in our next lesson."</p><div class="mkt-author"><div class="mkt-avatar" style="background:linear-gradient(135deg,var(--emerald),#1A9E6A)">AP</div><div><strong>Amanda Park</strong><span>8th Grade Writing, Westview HS</span></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PRICING ── -->
+<section class="mkt-section mkt-white" id="pricing">
+  <div class="mkt-inner" style="text-align:center">
+    <div class="section-label mkt-reveal" style="justify-content:center">Pricing</div>
+    <h2 class="section-title mkt-reveal" style="transition-delay:0.1s;max-width:100%">Simple, transparent pricing.</h2>
+    <p class="section-body mkt-reveal" style="transition-delay:0.2s;text-align:center;margin:0.5rem auto 2.5rem;max-width:480px">Start free. Upgrade when you're ready. No contracts during beta.</p>
+    <div class="mkt-pricing-grid">
+      <div class="mkt-price-card mkt-reveal"><div class="mkt-price-tier">Teacher</div><div class="mkt-price-num">$20<span>/mo</span></div><div class="mkt-price-period">per teacher · billed monthly</div><ul class="mkt-price-list"><li>✓ Up to 60 students</li><li>✓ AI assessment on all submissions</li><li>✓ Skill heatmap &amp; growth tracking</li><li>✓ Schoology LTI integration</li><li>✓ Microsoft SSO</li></ul><button class="btn btn-secondary btn-full" onclick="openModal('modal-teacher-login')">Start Free Trial</button></div>
+      <div class="mkt-price-card mkt-popular mkt-reveal" style="transition-delay:0.1s"><div class="mkt-popular-badge">Most Popular</div><div class="mkt-price-tier">School</div><div class="mkt-price-num">$8<span>/student</span></div><div class="mkt-price-period">per year · school-wide license</div><ul class="mkt-price-list"><li>✓ Unlimited teachers &amp; students</li><li>✓ Everything in Teacher plan</li><li>✓ Admin dashboard &amp; reporting</li><li>✓ FERPA compliance documentation</li><li>✓ Priority support</li></ul><button class="btn btn-primary btn-full" onclick="openModal('modal-teacher-login')">Contact for Pricing</button></div>
+      <div class="mkt-price-card mkt-reveal" style="transition-delay:0.2s"><div class="mkt-price-tier">District</div><div class="mkt-price-num" style="font-size:2rem">Custom</div><div class="mkt-price-period">district-wide · flexible terms</div><ul class="mkt-price-list"><li>✓ Everything in School plan</li><li>✓ Custom AI benchmarks</li><li>✓ Professional development</li><li>✓ Dedicated customer success</li><li>✓ Data export &amp; API access</li></ul><button class="btn btn-secondary btn-full" onclick="openModal('modal-teacher-login')">Talk to Sales</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── INTEGRATIONS ── -->
+<section class="mkt-section mkt-cream" style="padding:50px 5%">
+  <div style="max-width:900px;margin:0 auto;text-align:center">
+    <div style="font-size:0.8rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:1.5rem">Works with the tools you already use</div>
+    <div class="mkt-int-logos">
+      <div class="mkt-int-logo">🏫 Schoology</div>
+      <div class="mkt-int-logo">🪟 Microsoft SSO</div>
+      <div class="mkt-int-logo">🔑 Clever</div>
+      <div class="mkt-int-logo">🔗 ClassLink</div>
+      <div class="mkt-int-logo">📐 Common Core</div>
+      <div class="mkt-int-logo">🔒 FERPA + COPPA</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ── -->
+<section class="mkt-cta" id="cta">
+  <div style="max-width:700px;margin:0 auto;text-align:center;position:relative;z-index:1">
+    <h2 style="font-family:'Playfair Display',serif;font-size:clamp(2.2rem,5vw,4rem);color:var(--white);font-weight:900;margin-bottom:1rem">Ready to lift<br><em style="color:var(--amber);font-style:italic">every writer?</em></h2>
+    <p style="color:rgba(245,240,232,0.55);font-size:1.1rem;margin-bottom:2rem">Join our beta program. Try WriteLift in your classroom today.</p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+      <button class="btn-primary" onclick="openModal('modal-student')">✍️ Start Writing Now</button>
+      <button class="btn-teacher-outline" onclick="openModal('modal-teacher-login')">📊 Teacher Setup</button>
+    </div>
+    <div style="margin-top:1.2rem;font-size:0.8rem;color:rgba(245,240,232,0.3)">No credit card required · Free beta access · Open to all classrooms</div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer class="mkt-footer">
+  <div class="mkt-inner">
+    <div class="mkt-footer-grid">
+      <div>
+        <div class="footer-logo-wrap"><div class="nav-logo-mark">W</div> WriteLift AI</div>
+        <p style="font-size:0.875rem;color:rgba(245,240,232,0.4);margin:10px 0 16px;line-height:1.6">Personalized AI writing instruction for every K-12 student — especially those who need it most.</p>
+      </div>
+      <div><div class="mkt-footer-title">Product</div><ul class="mkt-footer-links"><li><a href="#features">Features</a></li><li><a href="#for-teachers">For Teachers</a></li><li><a href="#pricing">Pricing</a></li><li><a href="#how-it-works">How It Works</a></li></ul></div>
+      <div><div class="mkt-footer-title">Platform</div><ul class="mkt-footer-links"><li><a href="#">Schoology Integration</a></li><li><a href="#">Common Core Alignment</a></li><li><a href="#">FERPA Compliance</a></li><li><a href="#">Setup Guide</a></li></ul></div>
+      <div><div class="mkt-footer-title">Company</div><ul class="mkt-footer-links"><li><a href="#">About</a></li><li><a href="#">Contact</a></li><li><a href="#">Privacy Policy</a></li><li><a href="#">Terms of Service</a></li></ul></div>
+    </div>
+    <div class="mkt-footer-bottom">
+      <span>© 2026 WriteLift AI · Now in Beta</span>
+      <div style="display:flex;gap:16px"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">FERPA</a></div>
+    </div>
+  </div>
+</footer>
+
+</div><!-- end screen-landing -->
 
 <!-- ══════════════════════════════════════════
      SCREEN: STUDENT
@@ -1424,7 +1872,104 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('t-emailjs-service').value = STATE.teacher.emailjsService || '';
     document.getElementById('t-emailjs-template').value = STATE.teacher.emailjsTemplate || '';
   }
+
+  // ── Marketing site JS ──
+
+  // Navbar scroll effect
+  const landingScreen = document.getElementById('screen-landing');
+  const mktNav = document.getElementById('mkt-navbar');
+  if (landingScreen && mktNav) {
+    landingScreen.addEventListener('scroll', () => {
+      mktNav.style.background = landingScreen.scrollTop > 60
+        ? 'rgba(13,27,42,0.98)'
+        : 'rgba(13,27,42,0.96)';
+    }, { passive: true });
+  }
+
+  // Scroll reveal
+  const revealObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px', root: landingScreen });
+  document.querySelectorAll('.mkt-reveal').forEach(el => revealObs.observe(el));
+
+  // Steps animation
+  const stepsObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) document.querySelectorAll('.mkt-step').forEach(s => s.classList.add('visible'));
+    });
+  }, { threshold: 0.2, root: landingScreen });
+  const stepsEl = document.querySelector('.mkt-steps');
+  if (stepsEl) stepsObs.observe(stepsEl);
+
+  // Skill bar animation
+  const skillBarObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.querySelectorAll('.mkt-skill-track div, .db-skill-bar').forEach(bar => {
+          const w = bar.style.width;
+          bar.style.width = '0';
+          requestAnimationFrame(() => {
+            bar.style.transition = 'width 1.2s cubic-bezier(0.23,1,0.32,1)';
+            bar.style.width = w;
+          });
+        });
+      }
+    });
+  }, { threshold: 0.3, root: landingScreen });
+  document.querySelectorAll('.mkt-feat-visual, .mockup-content').forEach(el => skillBarObs.observe(el));
+
+  // Stat counter animation
+  const statObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.querySelectorAll('.mkt-stat-num').forEach(num => {
+          const orig = num.textContent;
+          const match = orig.match(/[\d.]+/);
+          if (!match) return;
+          const prefix = orig.replace(/[\d.]+.*/, '');
+          const suffix = orig.replace(/^[^0-9]*[\d.]+/, '');
+          const val = parseFloat(match[0]);
+          const isFloat = orig.includes('.');
+          const start = performance.now();
+          const dur = 1500;
+          const tick = (now) => {
+            const p = Math.min((now - start) / dur, 1);
+            const eased = 1 - Math.pow(1 - p, 3);
+            num.textContent = prefix + (isFloat ? (val * eased).toFixed(1) : Math.floor(val * eased)) + suffix;
+            if (p < 1) requestAnimationFrame(tick);
+            else num.textContent = orig;
+          };
+          requestAnimationFrame(tick);
+        });
+        statObs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.3, root: landingScreen });
+  document.querySelectorAll('.mkt-stats-grid').forEach(el => statObs.observe(el));
+
+  // Smooth scroll for marketing anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(link => {
+    link.addEventListener('click', (ev) => {
+      const id = link.getAttribute('href');
+      if (id === '#') return;
+      const target = document.querySelector(id);
+      if (target && landingScreen) {
+        ev.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
 });
+
+// Marketing persona tab switcher
+function switchMktTab(persona) {
+  document.querySelectorAll('.mkt-ptab').forEach((tab, i) => {
+    tab.classList.toggle('active', (i === 0 && persona === 'student') || (i === 1 && persona === 'teacher'));
+  });
+  document.querySelectorAll('.mkt-pcontent').forEach(c => c.classList.remove('active'));
+  const t = document.getElementById('mkt-tab-' + persona);
+  if (t) t.classList.add('active');
+}
 </script>
 </body>
 </html>
