@@ -504,18 +504,20 @@ h1,h2,h3,h4{font-family:'Playfair Display',serif;line-height:1.15}
   </div>
 </div>
 
-<!-- API Key prompt for students -->
+<!-- API Key prompt -->
 <div class="modal-bg hidden" id="modal-apikey">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('modal-apikey')">✕</button>
-    <h2 class="modal-title">One quick step</h2>
-    <p class="modal-sub">An OpenAI API key is needed to run the AI assessment. Ask your teacher for the class key, or enter your own.</p>
+    <h2 class="modal-title">API Key Required</h2>
+    <p class="modal-sub">An OpenAI key is needed to power the AI assessment. This is a one-time setup — the key saves in your browser.</p>
     <div class="form-group">
-      <label class="form-label">OpenAI API Key</label>
-      <input class="form-input" id="fallback-apikey" type="password" placeholder="sk-...">
-      <div class="api-note">Get a free key at <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a></div>
+      <label class="form-label">OpenAI API Key <span>*</span></label>
+      <input class="form-input" id="fallback-apikey" type="password" placeholder="sk-proj-... or sk-...">
     </div>
-    <button class="btn btn-primary btn-full" onclick="saveFallbackKey()">Continue →</button>
+    <div class="api-note" style="margin-bottom:16px">
+      Get a free key at <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a> → sign in → <strong>Create new secret key</strong> → copy and paste it above.
+    </div>
+    <button class="btn btn-primary btn-full" onclick="saveFallbackKey()">Save Key &amp; Continue →</button>
   </div>
 </div>
 
@@ -849,8 +851,15 @@ async function submitEssay() {
   const content = document.getElementById('essay-input')?.value?.trim();
   if (!content || content.split(/\s+/).length < 30) return showToast('Please write at least 30 words before submitting.', true);
 
-  const apiKey = STATE.teacher?.apiKey || localStorage.getItem('writelift_openai_key');
-  if (!apiKey) { openModal('modal-apikey'); return; }
+  // Get API key — check all sources
+  let apiKey = STATE.teacher?.apiKey
+    || localStorage.getItem('writelift_openai_key')
+    || localStorage.getItem('fallback_api_key');
+
+  if (!apiKey || apiKey.length < 20) {
+    openModal('modal-apikey');
+    return;
+  }
 
   showLoading('Analyzing your writing with AI…');
   const btn = document.getElementById('submit-btn');
@@ -926,14 +935,31 @@ async function submitEssay() {
   } catch (err) {
     hideLoading();
     if (btn) btn.disabled = false;
-    showToast('Error: ' + err.message, true);
+    console.error('WriteLift error:', err);
+    const msg = err.message || 'Unknown error';
+    if (msg.includes('401') || msg.includes('Incorrect API key') || msg.includes('invalid_api_key')) {
+      showToast('❌ Invalid API key. Please re-enter your OpenAI key.', true);
+      localStorage.removeItem('writelift_openai_key');
+      localStorage.removeItem('fallback_api_key');
+      if (STATE.teacher) STATE.teacher.apiKey = '';
+      setTimeout(() => openModal('modal-apikey'), 1000);
+    } else if (msg.includes('fetch') || msg.includes('network') || msg.includes('Failed')) {
+      showToast('❌ Network error. Check your internet connection and try again.', true);
+    } else {
+      showToast('❌ Error: ' + msg, true);
+    }
   }
 }
 
-// ── AI Call via OpenAI (works from any hosted website — no CORS issues) ──
+// ── AI Call via OpenAI ──
 async function callAI(content, gradeLevel, assignmentPrompt) {
-  const apiKey = STATE.teacher?.apiKey || localStorage.getItem('writelift_openai_key');
-  if (!apiKey) throw new Error('No API key. Please ask your teacher to configure the class.');
+  const apiKey = STATE.teacher?.apiKey
+    || localStorage.getItem('writelift_openai_key')
+    || localStorage.getItem('fallback_api_key');
+
+  if (!apiKey || apiKey.length < 20) {
+    throw new Error('No API key found. Please enter your OpenAI key in Teacher Setup.');
+  }
 
   const rubric = `ORGANIZATION: Paragraph structure, flow, transitions (L1=no structure, L3=basic, L5=sophisticated)
 EVIDENCE: Supporting details, examples, reasoning (L1=none, L3=basic integration, L5=nuanced synthesis)
@@ -1189,11 +1215,15 @@ function loadScript(src) {
 
 function saveFallbackKey() {
   const key = document.getElementById('fallback-apikey')?.value?.trim();
-  if (!key) return showToast('Please enter an API key.', true);
+  if (!key || key.length < 20) return showToast('Please paste a valid API key (starts with sk-).', true);
+  // Save everywhere so it's never lost
   localStorage.setItem('writelift_openai_key', key);
-  if (STATE.teacher) STATE.teacher.apiKey = key;
+  localStorage.setItem('fallback_api_key', key);
+  if (!STATE.teacher) STATE.teacher = { apiKey: key };
+  else STATE.teacher.apiKey = key;
   closeModal('modal-apikey');
-  submitEssay();
+  showToast('✅ API key saved! Submitting now…');
+  setTimeout(() => submitEssay(), 500);
 }
 
 // ══════════════════════════════════════════
