@@ -604,502 +604,8 @@ h1,h2,h3,h4{font-family:'Playfair Display',serif;line-height:1.15}
   .landing-title{font-size:2.5rem}
 }
 </style>
-</head>
-<body>
 
-<!-- ── LOADING OVERLAY ── -->
-<div class="loading-overlay hidden" id="loading">
-  <div class="spinner"></div>
-  <div class="loading-text" id="loading-text">Analyzing your writing with AI…</div>
-</div>
-
-<!-- ── TOAST ── -->
-<div class="toast hidden" id="toast"></div>
-
-<!-- ══════════════════════════════════════════
-     SCREEN: LANDING (full marketing site)
-══════════════════════════════════════════ -->
-<div class="screen active" id="screen-landing">
-
-<!-- ── NAVBAR ── -->
-<nav id="mkt-navbar">
-  <a href="#" class="nav-logo" onclick="document.getElementById('screen-landing').scrollTop=0;return false;">
-    <div class="nav-logo-mark">W</div>WriteLift
-  </a>
-  <div class="nav-links">
-    <a href="#how-it-works" class="nav-link">How It Works</a>
-    <a href="#features" class="nav-link">Features</a>
-    <a href="#for-teachers" class="nav-link">For Teachers</a>
-    <a href="#pricing" class="nav-link">Pricing</a>
-    <button class="nav-link" style="background:none;border:none;cursor:pointer;font-size:0.9rem;font-weight:500;color:var(--text-secondary);font-family:'DM Sans',sans-serif;" onclick="openModal('modal-teacher-login')">Teacher Login</button>
-    <button class="nav-cta" onclick="openModal('modal-student')">Start Writing →</button>
-  </div>
-</nav>
-
-<!-- ── HERO ── -->
-<section class="mkt-hero">
-  <div class="hero-orb hero-orb-1"></div>
-  <div class="hero-orb hero-orb-2"></div>
-  <div class="hero-orb hero-orb-3"></div>
-  <div class="hero-eyebrow"><div class="eyebrow-dot"></div>Now in Beta — Accepting Classrooms</div>
-  <h1 class="hero-headline">Every student can become<em>a stronger writer.</em></h1>
-  <p class="hero-sub">WriteLift AI meets students exactly where they are — from struggling below grade level to advanced — and builds real writing skills through personalized feedback, adaptive practice, and leveled reading.</p>
-  <div class="hero-actions">
-    <button class="btn-primary" onclick="openModal('modal-student')">✍️ Start Writing →</button>
-    <a href="#how-it-works" class="btn-secondary">▶ See How It Works</a>
-    <button class="btn-teacher-outline" onclick="openModal('modal-teacher-login')">📊 Teacher Login</button>
-  </div>
-  <div class="hero-stats">
-    <div class="hero-stat"><span class="hero-stat-number">6</span><span class="hero-stat-label">Skill Dimensions</span></div>
-    <div class="hero-stat"><span class="hero-stat-number">5</span><span class="hero-stat-label">Proficiency Levels</span></div>
-    <div class="hero-stat"><span class="hero-stat-number">LTI 1.3</span><span class="hero-stat-label">Schoology Ready</span></div>
-    <div class="hero-stat"><span class="hero-stat-number">FERPA</span><span class="hero-stat-label">Compliant</span></div>
-  </div>
-  <div class="hero-mockup">
-    <div class="mockup-browser">
-      <div class="mockup-bar">
-        <div class="mockup-dots"><div class="mockup-dot"></div><div class="mockup-dot"></div><div class="mockup-dot"></div></div>
-        <div class="mockup-url">app.writelift.ai/student/dashboard</div>
-      </div>
-      <div class="mockup-content">
-        <div class="dashboard-preview">
-          <div class="db-sidebar">
-            <div class="db-sidebar-title">WriteLift AI</div>
-            <div class="db-nav-item active"><span class="db-nav-icon">⌂</span> Dashboard</div>
-            <div class="db-nav-item"><span class="db-nav-icon">✍️</span> My Writing</div>
-            <div class="db-nav-item"><span class="db-nav-icon">📚</span> Practice</div>
-            <div class="db-nav-item"><span class="db-nav-icon">🏆</span> Milestones</div>
-          </div>
-          <div class="db-main">
-            <div class="db-greeting">Good morning, <span>Alex</span> 👋</div>
-            <div class="db-cards">
-              <div class="db-card"><div class="db-card-label">Writing Level</div><div class="db-card-value">3.2</div><div class="db-card-sub">↑ +0.4 this week</div></div>
-              <div class="db-card"><div class="db-card-label">Submissions</div><div class="db-card-value">12</div><div class="db-card-sub" style="color:var(--sky)">3 pending feedback</div></div>
-              <div class="db-card"><div class="db-card-label">Exercises Done</div><div class="db-card-value">8</div><div class="db-card-sub" style="color:var(--amber)">2 new assigned</div></div>
-            </div>
-            <div class="db-skills">
-              <div class="db-skills-title">Skill Levels</div>
-              <div class="db-skill-row"><span class="db-skill-name">Organization</span><div class="db-skill-bar-bg"><div class="db-skill-bar" style="width:72%;background:var(--amber)"></div></div><span class="db-skill-level">4</span></div>
-              <div class="db-skill-row"><span class="db-skill-name">Grammar</span><div class="db-skill-bar-bg"><div class="db-skill-bar" style="width:56%;background:var(--sky)"></div></div><span class="db-skill-level">3</span></div>
-              <div class="db-skill-row"><span class="db-skill-name">Evidence</span><div class="db-skill-bar-bg"><div class="db-skill-bar" style="width:44%;background:var(--rose)"></div></div><span class="db-skill-level">2</span></div>
-              <div class="db-skill-row"><span class="db-skill-name">Vocabulary</span><div class="db-skill-bar-bg"><div class="db-skill-bar" style="width:60%;background:var(--emerald)"></div></div><span class="db-skill-level">3</span></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ── PROBLEM ── -->
-<section class="mkt-section mkt-white" id="problem">
-  <div class="mkt-inner mkt-two-col">
-    <div>
-      <div class="section-label mkt-reveal">The Challenge</div>
-      <h2 class="section-title mkt-reveal" style="transition-delay:0.1s">Most students never get the writing feedback they need.</h2>
-      <p class="section-body mkt-reveal" style="transition-delay:0.2s">One teacher. Thirty students. Forty-five minutes. Traditional classroom writing instruction leaves too many students behind — especially those already struggling below grade level. WriteLift changes that equation.</p>
-      <p class="section-body mkt-reveal" style="margin-top:1rem;transition-delay:0.3s">By combining AI assessment with scaffolded practice, every student gets immediate, specific, actionable feedback — not just a letter grade.</p>
-    </div>
-    <div class="mkt-stats-grid">
-      <div class="mkt-stat-card red mkt-reveal"><div class="mkt-stat-num">27%</div><div class="mkt-stat-desc">of 8th graders perform below basic writing proficiency on NAEP</div></div>
-      <div class="mkt-stat-card amber mkt-reveal" style="transition-delay:0.1s"><div class="mkt-stat-num">3×</div><div class="mkt-stat-desc">More likely to disengage when feedback comes days after submission</div></div>
-      <div class="mkt-stat-card blue mkt-reveal" style="transition-delay:0.2s"><div class="mkt-stat-num">73%</div><div class="mkt-stat-desc">of teachers report insufficient time to give detailed writing feedback</div></div>
-      <div class="mkt-stat-card green mkt-reveal" style="transition-delay:0.3s"><div class="mkt-stat-num">+2.4×</div><div class="mkt-stat-desc">Improvement in writing scores with structured, targeted practice</div></div>
-    </div>
-  </div>
-</section>
-
-<!-- ── HOW IT WORKS ── -->
-<section class="mkt-section mkt-navy" id="how-it-works">
-  <div class="mkt-inner">
-    <div class="section-label" style="color:var(--amber-light)">The Process</div>
-    <h2 class="section-title" style="color:var(--white);max-width:500px">A writing loop that actually closes.</h2>
-    <p class="section-body" style="color:rgba(245,240,232,0.55)">From submission to skill growth in minutes — not days.</p>
-    <div class="mkt-steps">
-      <div class="mkt-steps-line"></div>
-      <div class="mkt-step mkt-reveal"><div class="mkt-step-num">1</div><div class="mkt-step-icon">✍️</div><h4>Student Writes</h4><p>Submit any writing — essays, paragraphs, narratives — in the platform or via Schoology.</p></div>
-      <div class="mkt-step mkt-reveal" style="transition-delay:0.1s"><div class="mkt-step-num">2</div><div class="mkt-step-icon">🤖</div><h4>AI Assesses</h4><p>GPT-4o scores 6 skill areas with grade-level calibrated rubrics and Common Core alignment.</p></div>
-      <div class="mkt-step mkt-reveal" style="transition-delay:0.2s"><div class="mkt-step-num">3</div><div class="mkt-step-icon">💬</div><h4>Feedback Delivered</h4><p>Color-coded highlights show strengths and specific, rewritten improvement examples.</p></div>
-      <div class="mkt-step mkt-reveal" style="transition-delay:0.3s"><div class="mkt-step-num">4</div><div class="mkt-step-icon">🎯</div><h4>Practice Assigned</h4><p>Up to 3 micro-skill exercises auto-generated for the student's exact weaknesses.</p></div>
-      <div class="mkt-step mkt-reveal" style="transition-delay:0.4s"><div class="mkt-step-num">5</div><div class="mkt-step-icon">📈</div><h4>Skills Tracked</h4><p>Rolling mastery profiles update automatically. Teachers see real-time growth heatmaps.</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- ── FEATURES ── -->
-<section class="mkt-section mkt-cream" id="features">
-  <div class="mkt-inner">
-    <div class="section-label mkt-reveal">Platform Features</div>
-    <h2 class="section-title mkt-reveal" style="transition-delay:0.1s;margin-bottom:2.5rem">Everything the classroom needs. Nothing it doesn't.</h2>
-    <div class="mkt-features-grid">
-      <div class="mkt-feature-card mkt-featured mkt-reveal">
-        <div class="mkt-feat-inner">
-          <div><div class="mkt-feat-icon" style="background:rgba(244,165,54,0.15)">🧠</div><div class="mkt-feat-tag">Core Engine</div><div class="mkt-feat-title">AI Assessment Across 6 Skill Dimensions</div><div class="mkt-feat-body">Every submission is instantly scored on Organization, Evidence, Grammar, Sentence Variety, Vocabulary, and Argument Strength — each on a 1–5 proficiency scale calibrated to grade level.</div></div>
-          <div class="mkt-feat-visual">
-            <div style="font-size:0.7rem;color:rgba(255,255,255,0.35);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.06em">Assessment Result</div>
-            <div class="mkt-skill-row"><span>Organization</span><div class="mkt-skill-track"><div style="width:85%;background:var(--amber)"></div></div><span>85</span></div>
-            <div class="mkt-skill-row"><span>Evidence</span><div class="mkt-skill-track"><div style="width:62%;background:var(--sky)"></div></div><span>62</span></div>
-            <div class="mkt-skill-row"><span>Grammar</span><div class="mkt-skill-track"><div style="width:78%;background:var(--emerald)"></div></div><span>78</span></div>
-            <div class="mkt-skill-row"><span>Vocabulary</span><div class="mkt-skill-track"><div style="width:45%;background:var(--rose)"></div></div><span>45</span></div>
-            <div class="mkt-skill-row"><span>Sentences</span><div class="mkt-skill-track"><div style="width:70%;background:var(--amber)"></div></div><span>70</span></div>
-            <div class="mkt-skill-row" style="margin-bottom:0"><span>Argument</span><div class="mkt-skill-track"><div style="width:58%;background:var(--sky)"></div></div><span>58</span></div>
-          </div>
-        </div>
-      </div>
-      <div class="mkt-feature-card mkt-reveal"><div class="mkt-feat-icon" style="background:rgba(244,165,54,0.1)">🪜</div><div class="mkt-feat-tag">Scaffolding</div><div class="mkt-feat-title">Built for Students Below Grade Level</div><div class="mkt-feat-body">Stepwise prompts guide struggling writers from single sentences to full paragraphs. Micro-skill focus drills the exact gaps holding students back.</div></div>
-      <div class="mkt-feature-card mkt-reveal" style="transition-delay:0.1s"><div class="mkt-feat-icon" style="background:rgba(91,164,207,0.1)">📖</div><div class="mkt-feat-tag">Adaptive Content</div><div class="mkt-feat-title">Leveled Readings Auto-Assigned</div><div class="mkt-feat-body">The platform matches each student to reading material at their current Lexile level — and gradually scaffolds upward as skills improve.</div></div>
-      <div class="mkt-feature-card mkt-reveal" style="transition-delay:0.2s"><div class="mkt-feat-icon" style="background:rgba(46,204,138,0.1)">🗺️</div><div class="mkt-feat-tag">Teacher View</div><div class="mkt-feat-title">Visual Skill Heatmaps</div><div class="mkt-feat-body">See the whole class's skill matrix at a glance. Identify students who need intervention before they fall further behind, with weekly alerts.</div></div>
-      <div class="mkt-feature-card mkt-reveal" style="transition-delay:0.1s"><div class="mkt-feat-icon" style="background:rgba(232,93,117,0.1)">🔗</div><div class="mkt-feat-tag">LMS Integration</div><div class="mkt-feat-title">Schoology LTI 1.3 + Grade Passback</div><div class="mkt-feat-body">Launch from Schoology, sync rosters automatically, and push scores back as grades. No separate login. No extra steps for students.</div></div>
-      <div class="mkt-feature-card mkt-reveal" style="transition-delay:0.2s"><div class="mkt-feat-icon" style="background:rgba(244,165,54,0.1)">🏆</div><div class="mkt-feat-tag">Motivation</div><div class="mkt-feat-title">Milestone Achievements</div><div class="mkt-feat-body">Students earn milestones as skills grow — from "First Submission" to "Grammar Champion." Progress is always visible and celebrated.</div></div>
-    </div>
-  </div>
-</section>
-
-<!-- ── FOR TEACHERS / STUDENTS ── -->
-<section class="mkt-section mkt-white" id="for-teachers">
-  <div class="mkt-inner">
-    <div class="section-label mkt-reveal">Who It's For</div>
-    <h2 class="section-title mkt-reveal" style="transition-delay:0.1s;margin-bottom:1.5rem">Designed for everyone in the classroom.</h2>
-    <div class="mkt-persona-tabs mkt-reveal" style="transition-delay:0.2s">
-      <button class="mkt-ptab active" onclick="switchMktTab('student')">For Students</button>
-      <button class="mkt-ptab" onclick="switchMktTab('teacher')">For Teachers</button>
-    </div>
-    <div class="mkt-pcontent active" id="mkt-tab-student">
-      <div>
-        <h3 style="font-size:1.8rem;margin-bottom:6px">Your writing coach, always available.</h3>
-        <p style="color:var(--text-secondary)">Instant feedback. No waiting for papers to be returned.</p>
-        <ul class="mkt-plist">
-          <li><div class="mkt-pcheck">✓</div>Submit writing and get detailed feedback in under 30 seconds</li>
-          <li><div class="mkt-pcheck">✓</div>See exactly which sentences are strong and which need improvement</li>
-          <li><div class="mkt-pcheck">✓</div>Practice the specific skills you're weakest at — not generic exercises</li>
-          <li><div class="mkt-pcheck">✓</div>Track your growth across all 6 writing dimensions over time</li>
-          <li><div class="mkt-pcheck">✓</div>Earn achievements as you reach new proficiency levels</li>
-        </ul>
-        <button class="btn btn-primary" style="margin-top:24px" onclick="openModal('modal-student')">✍️ Start Writing Now</button>
-      </div>
-      <div class="mkt-pmockup">
-        <div class="mkt-pm-header"><span style="font-family:'Playfair Display',serif;color:var(--white)">Writing Feedback</span><span class="mkt-pm-badge">Level 3.2</span></div>
-        <div style="padding:20px">
-          <div style="font-size:0.7rem;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px">Your Strengths ✓</div>
-          <div class="mkt-fb strength"><span>🟢</span><div style="font-size:0.82rem;color:rgba(255,255,255,0.7)"><strong style="color:var(--white)">"The evidence clearly supports the thesis"</strong> — Great use of specific data to back your argument.</div></div>
-          <div style="font-size:0.7rem;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.07em;margin:14px 0 10px">Improvements →</div>
-          <div class="mkt-fb improve"><span>🟡</span><div style="font-size:0.82rem;color:rgba(255,255,255,0.7)"><strong style="color:var(--white)">"However the students they said"</strong> — Try: <em style="color:var(--amber-light)">"Despite these challenges, students argue..."</em></div></div>
-          <div style="margin-top:14px;background:rgba(244,165,54,0.1);border:1px solid rgba(244,165,54,0.2);border-radius:8px;padding:10px;font-size:0.8rem;color:rgba(255,255,255,0.7)">🎯 <strong style="color:var(--amber)">Next Step:</strong> Practice exercise assigned — Using Evidence with Analysis.</div>
-        </div>
-      </div>
-    </div>
-    <div class="mkt-pcontent" id="mkt-tab-teacher">
-      <div>
-        <h3 style="font-size:1.8rem;margin-bottom:6px">See every student. Scale your impact.</h3>
-        <p style="color:var(--text-secondary)">From 30 students to 30 personalized learning paths.</p>
-        <ul class="mkt-plist">
-          <li><div class="mkt-pcheck">✓</div>Instant visual heatmap of every student's skill levels</li>
-          <li><div class="mkt-pcheck">✓</div>Automatic alerts when students haven't engaged in 7+ days</li>
-          <li><div class="mkt-pcheck">✓</div>Create assignments with one click; AI handles the rest</li>
-          <li><div class="mkt-pcheck">✓</div>Grades sync directly back to Schoology via LTI grade passback</li>
-          <li><div class="mkt-pcheck">✓</div>Track growth trends per student and per skill over the semester</li>
-          <li><div class="mkt-pcheck">✓</div>Common Core standards alignment reported automatically</li>
-        </ul>
-        <button class="btn btn-primary" style="margin-top:24px" onclick="openModal('modal-teacher-login')">📊 Open Teacher Dashboard</button>
-      </div>
-      <div class="mkt-pmockup">
-        <div class="mkt-pm-header"><span style="font-family:'Playfair Display',serif;color:var(--white)">Class Skill Heatmap</span><span class="mkt-pm-badge">7th Grade ELA</span></div>
-        <div style="padding:16px;overflow-x:auto">
-          <table style="width:100%;border-collapse:separate;border-spacing:0;font-size:0.72rem">
-            <tr><th style="text-align:left;color:rgba(255,255,255,0.35);padding:4px 8px;font-weight:600">Student</th><th style="color:rgba(255,255,255,0.35);padding:4px;font-weight:600">Org</th><th style="color:rgba(255,255,255,0.35);padding:4px;font-weight:600">Evid</th><th style="color:rgba(255,255,255,0.35);padding:4px;font-weight:600">Gram</th><th style="color:rgba(255,255,255,0.35);padding:4px;font-weight:600">Sent</th><th style="color:rgba(255,255,255,0.35);padding:4px;font-weight:600">Vocab</th><th style="color:rgba(255,255,255,0.35);padding:4px;font-weight:600">Arg</th></tr>
-            <tr><td style="color:rgba(255,255,255,0.7);padding:5px 8px">Alex R.</td><td style="text-align:center;padding:3px"><span class="hc hc4">L4</span></td><td style="text-align:center;padding:3px"><span class="hc hc2">L2</span></td><td style="text-align:center;padding:3px"><span class="hc hc3">L3</span></td><td style="text-align:center;padding:3px"><span class="hc hc4">L4</span></td><td style="text-align:center;padding:3px"><span class="hc hc3">L3</span></td><td style="text-align:center;padding:3px"><span class="hc hc2">L2</span></td></tr>
-            <tr><td style="color:rgba(255,255,255,0.7);padding:5px 8px">Jordan L.</td><td style="text-align:center;padding:3px"><span class="hc hc2">L2</span></td><td style="text-align:center;padding:3px"><span class="hc hc1">L1</span></td><td style="text-align:center;padding:3px"><span class="hc hc2">L2</span></td><td style="text-align:center;padding:3px"><span class="hc hc2">L2</span></td><td style="text-align:center;padding:3px"><span class="hc hc1">L1</span></td><td style="text-align:center;padding:3px"><span class="hc hc2">L2</span></td></tr>
-            <tr><td style="color:rgba(255,255,255,0.7);padding:5px 8px">Sam C.</td><td style="text-align:center;padding:3px"><span class="hc hc5">L5</span></td><td style="text-align:center;padding:3px"><span class="hc hc4">L4</span></td><td style="text-align:center;padding:3px"><span class="hc hc5">L5</span></td><td style="text-align:center;padding:3px"><span class="hc hc4">L4</span></td><td style="text-align:center;padding:3px"><span class="hc hc5">L5</span></td><td style="text-align:center;padding:3px"><span class="hc hc4">L4</span></td></tr>
-            <tr><td style="color:rgba(255,255,255,0.7);padding:5px 8px">Maya P.</td><td style="text-align:center;padding:3px"><span class="hc hc3">L3</span></td><td style="text-align:center;padding:3px"><span class="hc hc3">L3</span></td><td style="text-align:center;padding:3px"><span class="hc hc2">L2</span></td><td style="text-align:center;padding:3px"><span class="hc hc3">L3</span></td><td style="text-align:center;padding:3px"><span class="hc hc3">L3</span></td><td style="text-align:center;padding:3px"><span class="hc hc3">L3</span></td></tr>
-          </table>
-          <div style="margin-top:12px;background:rgba(232,93,117,0.1);border:1px solid rgba(232,93,117,0.2);border-radius:8px;padding:10px;font-size:0.78rem;color:rgba(255,255,255,0.7)">⚠️ <strong style="color:var(--rose)">Alert:</strong> Jordan L. needs immediate support.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ── TESTIMONIALS ── -->
-<section class="mkt-section mkt-cream-dark">
-  <div class="mkt-inner">
-    <div class="section-label mkt-reveal">Early Feedback</div>
-    <h2 class="section-title mkt-reveal" style="transition-delay:0.1s">Beta teachers are already seeing results.</h2>
-    <div class="mkt-testimonials">
-      <div class="mkt-testimonial mkt-reveal"><div class="mkt-stars">★★★★★</div><p>"My struggling writers finally understand what they need to work on. One student went from a Level 1 to Level 3 in six weeks."</p><div class="mkt-author"><div class="mkt-avatar" style="background:linear-gradient(135deg,var(--amber),var(--amber-dark))">SJ</div><div><strong>Sarah Johnson</strong><span>7th Grade ELA, Springfield Middle</span></div></div></div>
-      <div class="mkt-testimonial mkt-reveal" style="transition-delay:0.1s"><div class="mkt-stars">★★★★★</div><p>"The Schoology integration was seamless. Students are submitting more because they get feedback immediately instead of waiting a week."</p><div class="mkt-author"><div class="mkt-avatar" style="background:linear-gradient(135deg,var(--sky),#3A7DB5)">MR</div><div><strong>Michael Rodriguez</strong><span>ELA Dept Head, Lincoln USD</span></div></div></div>
-      <div class="mkt-testimonial mkt-reveal" style="transition-delay:0.2s"><div class="mkt-stars">★★★★★</div><p>"The heatmap alone saves me hours every week. I open WriteLift and know instantly which skills to address in our next lesson."</p><div class="mkt-author"><div class="mkt-avatar" style="background:linear-gradient(135deg,var(--emerald),#1A9E6A)">AP</div><div><strong>Amanda Park</strong><span>8th Grade Writing, Westview HS</span></div></div></div>
-    </div>
-  </div>
-</section>
-
-<!-- ── PRICING ── -->
-<section class="mkt-section mkt-white" id="pricing">
-  <div class="mkt-inner" style="text-align:center">
-    <div class="section-label mkt-reveal" style="justify-content:center">Pricing</div>
-    <h2 class="section-title mkt-reveal" style="transition-delay:0.1s;max-width:100%">Simple, transparent pricing.</h2>
-    <p class="section-body mkt-reveal" style="transition-delay:0.2s;text-align:center;margin:0.5rem auto 2.5rem;max-width:480px">Start free. Upgrade when you're ready. No contracts during beta.</p>
-    <div class="mkt-pricing-grid">
-      <div class="mkt-price-card mkt-reveal"><div class="mkt-price-tier">Teacher</div><div class="mkt-price-num">$20<span>/mo</span></div><div class="mkt-price-period">per teacher · billed monthly</div><ul class="mkt-price-list"><li>✓ Up to 60 students</li><li>✓ AI assessment on all submissions</li><li>✓ Skill heatmap &amp; growth tracking</li><li>✓ Schoology LTI integration</li><li>✓ Microsoft SSO</li></ul><button class="btn btn-secondary btn-full" onclick="openModal('modal-teacher-login')">Start Free Trial</button></div>
-      <div class="mkt-price-card mkt-popular mkt-reveal" style="transition-delay:0.1s"><div class="mkt-popular-badge">Most Popular</div><div class="mkt-price-tier">School</div><div class="mkt-price-num">$8<span>/student</span></div><div class="mkt-price-period">per year · school-wide license</div><ul class="mkt-price-list"><li>✓ Unlimited teachers &amp; students</li><li>✓ Everything in Teacher plan</li><li>✓ Admin dashboard &amp; reporting</li><li>✓ FERPA compliance documentation</li><li>✓ Priority support</li></ul><button class="btn btn-primary btn-full" onclick="openModal('modal-teacher-login')">Contact for Pricing</button></div>
-      <div class="mkt-price-card mkt-reveal" style="transition-delay:0.2s"><div class="mkt-price-tier">District</div><div class="mkt-price-num" style="font-size:2rem">Custom</div><div class="mkt-price-period">district-wide · flexible terms</div><ul class="mkt-price-list"><li>✓ Everything in School plan</li><li>✓ Custom AI benchmarks</li><li>✓ Professional development</li><li>✓ Dedicated customer success</li><li>✓ Data export &amp; API access</li></ul><button class="btn btn-secondary btn-full" onclick="openModal('modal-teacher-login')">Talk to Sales</button></div>
-    </div>
-  </div>
-</section>
-
-<!-- ── INTEGRATIONS ── -->
-<section class="mkt-section mkt-cream" style="padding:50px 5%">
-  <div style="max-width:900px;margin:0 auto;text-align:center">
-    <div style="font-size:0.8rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:1.5rem">Works with the tools you already use</div>
-    <div class="mkt-int-logos">
-      <div class="mkt-int-logo">🏫 Schoology</div>
-      <div class="mkt-int-logo">🪟 Microsoft SSO</div>
-      <div class="mkt-int-logo">🔑 Clever</div>
-      <div class="mkt-int-logo">🔗 ClassLink</div>
-      <div class="mkt-int-logo">📐 Common Core</div>
-      <div class="mkt-int-logo">🔒 FERPA + COPPA</div>
-    </div>
-  </div>
-</section>
-
-<!-- ── CTA ── -->
-<section class="mkt-cta" id="cta">
-  <div style="max-width:700px;margin:0 auto;text-align:center;position:relative;z-index:1">
-    <h2 style="font-family:'Playfair Display',serif;font-size:clamp(2.2rem,5vw,4rem);color:var(--white);font-weight:900;margin-bottom:1rem">Ready to lift<br><em style="color:var(--amber);font-style:italic">every writer?</em></h2>
-    <p style="color:rgba(245,240,232,0.55);font-size:1.1rem;margin-bottom:2rem">Join our beta program. Try WriteLift in your classroom today.</p>
-    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
-      <button class="btn-primary" onclick="openModal('modal-student')">✍️ Start Writing Now</button>
-      <button class="btn-teacher-outline" onclick="openModal('modal-teacher-login')">📊 Teacher Setup</button>
-    </div>
-    <div style="margin-top:1.2rem;font-size:0.8rem;color:rgba(245,240,232,0.3)">No credit card required · Free beta access · Open to all classrooms</div>
-  </div>
-</section>
-
-<!-- ── FOOTER ── -->
-<footer class="mkt-footer">
-  <div class="mkt-inner">
-    <div class="mkt-footer-grid">
-      <div>
-        <div class="footer-logo-wrap"><div class="nav-logo-mark">W</div> WriteLift AI</div>
-        <p style="font-size:0.875rem;color:rgba(245,240,232,0.4);margin:10px 0 16px;line-height:1.6">Personalized AI writing instruction for every K-12 student — especially those who need it most.</p>
-      </div>
-      <div><div class="mkt-footer-title">Product</div><ul class="mkt-footer-links"><li><a href="#features">Features</a></li><li><a href="#for-teachers">For Teachers</a></li><li><a href="#pricing">Pricing</a></li><li><a href="#how-it-works">How It Works</a></li></ul></div>
-      <div><div class="mkt-footer-title">Platform</div><ul class="mkt-footer-links"><li><a href="#">Schoology Integration</a></li><li><a href="#">Common Core Alignment</a></li><li><a href="#">FERPA Compliance</a></li><li><a href="#">Setup Guide</a></li></ul></div>
-      <div><div class="mkt-footer-title">Company</div><ul class="mkt-footer-links"><li><a href="#">About</a></li><li><a href="#">Contact</a></li><li><a href="#">Privacy Policy</a></li><li><a href="#">Terms of Service</a></li></ul></div>
-    </div>
-    <div class="mkt-footer-bottom">
-      <span>© 2026 WriteLift AI · Now in Beta</span>
-      <div style="display:flex;gap:16px"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">FERPA</a></div>
-    </div>
-  </div>
-</footer>
-
-</div><!-- end screen-landing -->
-
-<!-- ══════════════════════════════════════════
-     SCREEN: STUDENT
-══════════════════════════════════════════ -->
-<div class="screen" id="screen-student">
-  <div class="topnav">
-    <div class="nav-brand" onclick="showScreen('landing')">
-      <div class="nav-mark">W</div> WriteLift AI
-    </div>
-    <div class="nav-right">
-      <div class="nav-user">Student: <span id="s-nav-name">—</span></div>
-      <button class="btn-nav" onclick="showScreen('landing')">← Exit</button>
-    </div>
-  </div>
-  <div class="student-layout">
-    <!-- Sidebar -->
-    <div class="sidebar">
-      <div class="sidebar-greeting">
-        <div class="sidebar-name" id="sidebar-name">Welcome</div>
-        <div class="sidebar-class" id="sidebar-class">—</div>
-      </div>
-      <div class="sidebar-level">
-        <div class="sl-label">Overall Level</div>
-        <div class="sl-value" id="sidebar-level">—</div>
-        <div class="sl-sub">out of 5</div>
-      </div>
-      <ul class="sidebar-nav">
-        <li class="snav-item active" onclick="switchStudentTab('dashboard')"><span class="snav-icon">⌂</span> Dashboard</li>
-        <li class="snav-item" onclick="switchStudentTab('write')"><span class="snav-icon">✍️</span> Write</li>
-        <li class="snav-item" onclick="switchStudentTab('exercises')"><span class="snav-icon">🎯</span> Exercises <span id="ex-badge" style="background:var(--amber);color:var(--navy);border-radius:100px;padding:1px 7px;font-size:0.7rem;margin-left:4px;display:none"></span></li>
-        <li class="snav-item" onclick="switchStudentTab('readings')"><span class="snav-icon">📖</span> Readings <span id="read-badge" style="background:var(--sky);color:var(--white);border-radius:100px;padding:1px 7px;font-size:0.7rem;margin-left:4px;display:none"></span></li>
-        <li class="snav-item" onclick="switchStudentTab('milestones')"><span class="snav-icon">🏆</span> Milestones</li>
-      </ul>
-    </div>
-    <!-- Main -->
-    <div class="student-main" id="student-main-content">
-      <!-- Content injected by JS -->
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════
-     SCREEN: TEACHER
-══════════════════════════════════════════ -->
-<div class="screen" id="screen-teacher">
-  <div class="topnav">
-    <div class="nav-brand" onclick="showScreen('landing')">
-      <div class="nav-mark">W</div> WriteLift AI
-    </div>
-    <div class="nav-right">
-      <div class="nav-user">Teacher View — <span id="t-class-display">—</span></div>
-      <button class="btn-nav btn-sm" onclick="exportCSV()" style="margin-right:4px">⬇ Export</button>
-      <button class="btn-nav" onclick="showScreen('landing')">← Exit</button>
-    </div>
-  </div>
-  <div class="teacher-main" id="teacher-main-content">
-    <!-- Content injected by JS -->
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════
-     MODALS
-══════════════════════════════════════════ -->
-
-<!-- Student Setup -->
-<div class="modal-bg hidden" id="modal-student">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('modal-student')">✕</button>
-    <h2 class="modal-title">Join Your Class</h2>
-    <p class="modal-sub">Enter your info and your teacher will see your work.</p>
-    <div class="form-group">
-      <label class="form-label">Your First & Last Name <span>*</span></label>
-      <input class="form-input" id="s-name" type="text" placeholder="e.g. Alex Rivera" autocomplete="name">
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Grade Level <span>*</span></label>
-        <select class="form-select" id="s-grade">
-          <option value="">Select grade</option>
-          <option value="5">5th Grade</option>
-          <option value="6">6th Grade</option>
-          <option value="7">7th Grade</option>
-          <option value="8">8th Grade</option>
-          <option value="9">9th Grade</option>
-          <option value="10">10th Grade</option>
-          <option value="11">11th Grade</option>
-          <option value="12">12th Grade</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Class Period</label>
-        <input class="form-input" id="s-period" type="text" placeholder="e.g. Period 2">
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Writing Prompt (from your teacher)</label>
-      <input class="form-input" id="s-prompt-code" type="text" placeholder="Enter prompt code or leave blank">
-      <div class="form-hint">Your teacher will give you a code, or you can use a free-write prompt.</div>
-    </div>
-    <button class="btn btn-primary btn-full" style="margin-top:8px" onclick="studentSignIn()">Start Writing →</button>
-  </div>
-</div>
-
-<!-- Teacher Setup / Login -->
-<div class="modal-bg hidden" id="modal-teacher-login">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('modal-teacher-login')">✕</button>
-    <h2 class="modal-title">Teacher Dashboard</h2>
-    <p class="modal-sub">Set up your class and the AI will email you every student result.</p>
-    <div class="form-group">
-      <label class="form-label">Teacher Email <span>*</span></label>
-      <input class="form-input" id="t-email" type="email" value="kwiatekjo@lynnschools.org" placeholder="your@email.com">
-      <div class="form-hint">All student results will be sent to this address automatically.</div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Class Name <span>*</span></label>
-        <input class="form-input" id="t-class" type="text" placeholder="e.g. 7th Grade ELA Period 2">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Grade Level</label>
-        <select class="form-select" id="t-grade">
-          <option value="6">6th Grade</option>
-          <option value="7" selected>7th Grade</option>
-          <option value="8">8th Grade</option>
-          <option value="9">9th Grade</option>
-          <option value="10">10th Grade</option>
-        </select>
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Writing Prompt for Students</label>
-      <textarea class="form-textarea" id="t-prompt" placeholder="e.g. Write an argumentative essay about whether schools should have year-round schedules. Use at least two pieces of evidence and address one counterargument." style="min-height:90px"></textarea>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Prompt Code (share with students)</label>
-      <input class="form-input" id="t-code" type="text" placeholder="e.g. JOHNSON2025" style="font-family:'DM Mono',monospace">
-      <div class="form-hint">Students enter this code so their work is linked to your class.</div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">OpenAI API Key <span>*</span></label>
-      <input class="form-input" id="t-apikey" type="password" placeholder="sk-...">
-      <div class="api-note">
-        Free key at <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a>. Stored only in your browser. Students need this to submit essays.
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">EmailJS Setup (for email notifications)</label>
-      <div class="form-row">
-        <div>
-          <input class="form-input" id="t-emailjs-public" type="text" placeholder="EmailJS Public Key">
-        </div>
-        <div>
-          <input class="form-input" id="t-emailjs-service" type="text" placeholder="Service ID">
-        </div>
-      </div>
-      <input class="form-input" id="t-emailjs-template" type="text" placeholder="Template ID" style="margin-top:8px">
-      <div class="api-note" style="margin-top:8px">
-        Free at <a href="https://www.emailjs.com/" target="_blank">emailjs.com</a> — connect your Gmail/Outlook. 
-        <strong>Or skip this</strong> — results still show in the dashboard and you can export to CSV.
-      </div>
-    </div>
-    <button class="btn btn-primary btn-full" style="margin-top:8px" onclick="teacherSetup()">Open Dashboard →</button>
-  </div>
-</div>
-
-<!-- Submission Detail Modal -->
-<div class="modal-bg hidden" id="modal-submission">
-  <div class="modal" style="max-width:680px">
-    <button class="modal-close" onclick="closeModal('modal-submission')">✕</button>
-    <div id="modal-submission-content"></div>
-  </div>
-</div>
-
-<!-- Add / Edit Class Modal -->
-<div class="modal-bg hidden" id="modal-add-class">
-  <div class="modal" id="modal-add-class-content">
-    <!-- filled by openAddClassModal() -->
-  </div>
-</div>
-
-<!-- Move Student Modal -->
-<div class="modal-bg hidden" id="modal-move-student">
-  <div class="modal" id="modal-move-student-content">
-    <!-- filled by openMoveStudentModal() -->
-  </div>
-</div>
-
-<!-- API Key prompt -->
-<div class="modal-bg hidden" id="modal-apikey">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('modal-apikey')">✕</button>
-    <h2 class="modal-title">API Key Required</h2>
-    <p class="modal-sub">An OpenAI key is needed to power the AI assessment. This is a one-time setup — the key saves in your browser.</p>
-    <div class="form-group">
-      <label class="form-label">OpenAI API Key <span>*</span></label>
-      <input class="form-input" id="fallback-apikey" type="password" placeholder="sk-proj-... or sk-...">
-    </div>
-    <div class="api-note" style="margin-bottom:16px">
-      Get a free key at <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a> → sign in → <strong>Create new secret key</strong> → copy and paste it above.
-    </div>
-    <button class="btn btn-primary btn-full" onclick="saveFallbackKey()">Save Key &amp; Continue →</button>
-  </div>
-</div>
-
-<script>
+<script defer>
 // ══════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════
@@ -2828,5 +2334,500 @@ function switchMktTab(persona) {
   if (t) t.classList.add('active');
 }
 </script>
+</head>
+<body>
+
+<!-- ── LOADING OVERLAY ── -->
+<div class="loading-overlay hidden" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">Analyzing your writing with AI…</div>
+</div>
+
+<!-- ── TOAST ── -->
+<div class="toast hidden" id="toast"></div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN: LANDING (full marketing site)
+══════════════════════════════════════════ -->
+<div class="screen active" id="screen-landing">
+
+<!-- ── NAVBAR ── -->
+<nav id="mkt-navbar">
+  <a href="#" class="nav-logo" onclick="document.getElementById('screen-landing').scrollTop=0;return false;">
+    <div class="nav-logo-mark">W</div>WriteLift
+  </a>
+  <div class="nav-links">
+    <a href="#how-it-works" class="nav-link">How It Works</a>
+    <a href="#features" class="nav-link">Features</a>
+    <a href="#for-teachers" class="nav-link">For Teachers</a>
+    <a href="#pricing" class="nav-link">Pricing</a>
+    <button class="nav-link" style="background:none;border:none;cursor:pointer;font-size:0.9rem;font-weight:500;color:var(--text-secondary);font-family:'DM Sans',sans-serif;" onclick="openModal('modal-teacher-login')">Teacher Login</button>
+    <button class="nav-cta" onclick="openModal('modal-student')">Start Writing →</button>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="mkt-hero">
+  <div class="hero-orb hero-orb-1"></div>
+  <div class="hero-orb hero-orb-2"></div>
+  <div class="hero-orb hero-orb-3"></div>
+  <div class="hero-eyebrow"><div class="eyebrow-dot"></div>Now in Beta — Accepting Classrooms</div>
+  <h1 class="hero-headline">Every student can become<em>a stronger writer.</em></h1>
+  <p class="hero-sub">WriteLift AI meets students exactly where they are — from struggling below grade level to advanced — and builds real writing skills through personalized feedback, adaptive practice, and leveled reading.</p>
+  <div class="hero-actions">
+    <button class="btn-primary" onclick="openModal('modal-student')">✍️ Start Writing →</button>
+    <a href="#how-it-works" class="btn-secondary">▶ See How It Works</a>
+    <button class="btn-teacher-outline" onclick="openModal('modal-teacher-login')">📊 Teacher Login</button>
+  </div>
+  <div class="hero-stats">
+    <div class="hero-stat"><span class="hero-stat-number">6</span><span class="hero-stat-label">Skill Dimensions</span></div>
+    <div class="hero-stat"><span class="hero-stat-number">5</span><span class="hero-stat-label">Proficiency Levels</span></div>
+    <div class="hero-stat"><span class="hero-stat-number">LTI 1.3</span><span class="hero-stat-label">Schoology Ready</span></div>
+    <div class="hero-stat"><span class="hero-stat-number">FERPA</span><span class="hero-stat-label">Compliant</span></div>
+  </div>
+  <div class="hero-mockup">
+    <div class="mockup-browser">
+      <div class="mockup-bar">
+        <div class="mockup-dots"><div class="mockup-dot"></div><div class="mockup-dot"></div><div class="mockup-dot"></div></div>
+        <div class="mockup-url">app.writelift.ai/student/dashboard</div>
+      </div>
+      <div class="mockup-content">
+        <div class="dashboard-preview">
+          <div class="db-sidebar">
+            <div class="db-sidebar-title">WriteLift AI</div>
+            <div class="db-nav-item active"><span class="db-nav-icon">⌂</span> Dashboard</div>
+            <div class="db-nav-item"><span class="db-nav-icon">✍️</span> My Writing</div>
+            <div class="db-nav-item"><span class="db-nav-icon">📚</span> Practice</div>
+            <div class="db-nav-item"><span class="db-nav-icon">🏆</span> Milestones</div>
+          </div>
+          <div class="db-main">
+            <div class="db-greeting">Good morning, <span>Alex</span> 👋</div>
+            <div class="db-cards">
+              <div class="db-card"><div class="db-card-label">Writing Level</div><div class="db-card-value">3.2</div><div class="db-card-sub">↑ +0.4 this week</div></div>
+              <div class="db-card"><div class="db-card-label">Submissions</div><div class="db-card-value">12</div><div class="db-card-sub" style="color:var(--sky)">3 pending feedback</div></div>
+              <div class="db-card"><div class="db-card-label">Exercises Done</div><div class="db-card-value">8</div><div class="db-card-sub" style="color:var(--amber)">2 new assigned</div></div>
+            </div>
+            <div class="db-skills">
+              <div class="db-skills-title">Skill Levels</div>
+              <div class="db-skill-row"><span class="db-skill-name">Organization</span><div class="db-skill-bar-bg"><div class="db-skill-bar" style="width:72%;background:var(--amber)"></div></div><span class="db-skill-level">4</span></div>
+              <div class="db-skill-row"><span class="db-skill-name">Grammar</span><div class="db-skill-bar-bg"><div class="db-skill-bar" style="width:56%;background:var(--sky)"></div></div><span class="db-skill-level">3</span></div>
+              <div class="db-skill-row"><span class="db-skill-name">Evidence</span><div class="db-skill-bar-bg"><div class="db-skill-bar" style="width:44%;background:var(--rose)"></div></div><span class="db-skill-level">2</span></div>
+              <div class="db-skill-row"><span class="db-skill-name">Vocabulary</span><div class="db-skill-bar-bg"><div class="db-skill-bar" style="width:60%;background:var(--emerald)"></div></div><span class="db-skill-level">3</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PROBLEM ── -->
+<section class="mkt-section mkt-white" id="problem">
+  <div class="mkt-inner mkt-two-col">
+    <div>
+      <div class="section-label mkt-reveal">The Challenge</div>
+      <h2 class="section-title mkt-reveal" style="transition-delay:0.1s">Most students never get the writing feedback they need.</h2>
+      <p class="section-body mkt-reveal" style="transition-delay:0.2s">One teacher. Thirty students. Forty-five minutes. Traditional classroom writing instruction leaves too many students behind — especially those already struggling below grade level. WriteLift changes that equation.</p>
+      <p class="section-body mkt-reveal" style="margin-top:1rem;transition-delay:0.3s">By combining AI assessment with scaffolded practice, every student gets immediate, specific, actionable feedback — not just a letter grade.</p>
+    </div>
+    <div class="mkt-stats-grid">
+      <div class="mkt-stat-card red mkt-reveal"><div class="mkt-stat-num">27%</div><div class="mkt-stat-desc">of 8th graders perform below basic writing proficiency on NAEP</div></div>
+      <div class="mkt-stat-card amber mkt-reveal" style="transition-delay:0.1s"><div class="mkt-stat-num">3×</div><div class="mkt-stat-desc">More likely to disengage when feedback comes days after submission</div></div>
+      <div class="mkt-stat-card blue mkt-reveal" style="transition-delay:0.2s"><div class="mkt-stat-num">73%</div><div class="mkt-stat-desc">of teachers report insufficient time to give detailed writing feedback</div></div>
+      <div class="mkt-stat-card green mkt-reveal" style="transition-delay:0.3s"><div class="mkt-stat-num">+2.4×</div><div class="mkt-stat-desc">Improvement in writing scores with structured, targeted practice</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section class="mkt-section mkt-navy" id="how-it-works">
+  <div class="mkt-inner">
+    <div class="section-label" style="color:var(--amber-light)">The Process</div>
+    <h2 class="section-title" style="color:var(--white);max-width:500px">A writing loop that actually closes.</h2>
+    <p class="section-body" style="color:rgba(245,240,232,0.55)">From submission to skill growth in minutes — not days.</p>
+    <div class="mkt-steps">
+      <div class="mkt-steps-line"></div>
+      <div class="mkt-step mkt-reveal"><div class="mkt-step-num">1</div><div class="mkt-step-icon">✍️</div><h4>Student Writes</h4><p>Submit any writing — essays, paragraphs, narratives — in the platform or via Schoology.</p></div>
+      <div class="mkt-step mkt-reveal" style="transition-delay:0.1s"><div class="mkt-step-num">2</div><div class="mkt-step-icon">🤖</div><h4>AI Assesses</h4><p>GPT-4o scores 6 skill areas with grade-level calibrated rubrics and Common Core alignment.</p></div>
+      <div class="mkt-step mkt-reveal" style="transition-delay:0.2s"><div class="mkt-step-num">3</div><div class="mkt-step-icon">💬</div><h4>Feedback Delivered</h4><p>Color-coded highlights show strengths and specific, rewritten improvement examples.</p></div>
+      <div class="mkt-step mkt-reveal" style="transition-delay:0.3s"><div class="mkt-step-num">4</div><div class="mkt-step-icon">🎯</div><h4>Practice Assigned</h4><p>Up to 3 micro-skill exercises auto-generated for the student's exact weaknesses.</p></div>
+      <div class="mkt-step mkt-reveal" style="transition-delay:0.4s"><div class="mkt-step-num">5</div><div class="mkt-step-icon">📈</div><h4>Skills Tracked</h4><p>Rolling mastery profiles update automatically. Teachers see real-time growth heatmaps.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FEATURES ── -->
+<section class="mkt-section mkt-cream" id="features">
+  <div class="mkt-inner">
+    <div class="section-label mkt-reveal">Platform Features</div>
+    <h2 class="section-title mkt-reveal" style="transition-delay:0.1s;margin-bottom:2.5rem">Everything the classroom needs. Nothing it doesn't.</h2>
+    <div class="mkt-features-grid">
+      <div class="mkt-feature-card mkt-featured mkt-reveal">
+        <div class="mkt-feat-inner">
+          <div><div class="mkt-feat-icon" style="background:rgba(244,165,54,0.15)">🧠</div><div class="mkt-feat-tag">Core Engine</div><div class="mkt-feat-title">AI Assessment Across 6 Skill Dimensions</div><div class="mkt-feat-body">Every submission is instantly scored on Organization, Evidence, Grammar, Sentence Variety, Vocabulary, and Argument Strength — each on a 1–5 proficiency scale calibrated to grade level.</div></div>
+          <div class="mkt-feat-visual">
+            <div style="font-size:0.7rem;color:rgba(255,255,255,0.35);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.06em">Assessment Result</div>
+            <div class="mkt-skill-row"><span>Organization</span><div class="mkt-skill-track"><div style="width:85%;background:var(--amber)"></div></div><span>85</span></div>
+            <div class="mkt-skill-row"><span>Evidence</span><div class="mkt-skill-track"><div style="width:62%;background:var(--sky)"></div></div><span>62</span></div>
+            <div class="mkt-skill-row"><span>Grammar</span><div class="mkt-skill-track"><div style="width:78%;background:var(--emerald)"></div></div><span>78</span></div>
+            <div class="mkt-skill-row"><span>Vocabulary</span><div class="mkt-skill-track"><div style="width:45%;background:var(--rose)"></div></div><span>45</span></div>
+            <div class="mkt-skill-row"><span>Sentences</span><div class="mkt-skill-track"><div style="width:70%;background:var(--amber)"></div></div><span>70</span></div>
+            <div class="mkt-skill-row" style="margin-bottom:0"><span>Argument</span><div class="mkt-skill-track"><div style="width:58%;background:var(--sky)"></div></div><span>58</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="mkt-feature-card mkt-reveal"><div class="mkt-feat-icon" style="background:rgba(244,165,54,0.1)">🪜</div><div class="mkt-feat-tag">Scaffolding</div><div class="mkt-feat-title">Built for Students Below Grade Level</div><div class="mkt-feat-body">Stepwise prompts guide struggling writers from single sentences to full paragraphs. Micro-skill focus drills the exact gaps holding students back.</div></div>
+      <div class="mkt-feature-card mkt-reveal" style="transition-delay:0.1s"><div class="mkt-feat-icon" style="background:rgba(91,164,207,0.1)">📖</div><div class="mkt-feat-tag">Adaptive Content</div><div class="mkt-feat-title">Leveled Readings Auto-Assigned</div><div class="mkt-feat-body">The platform matches each student to reading material at their current Lexile level — and gradually scaffolds upward as skills improve.</div></div>
+      <div class="mkt-feature-card mkt-reveal" style="transition-delay:0.2s"><div class="mkt-feat-icon" style="background:rgba(46,204,138,0.1)">🗺️</div><div class="mkt-feat-tag">Teacher View</div><div class="mkt-feat-title">Visual Skill Heatmaps</div><div class="mkt-feat-body">See the whole class's skill matrix at a glance. Identify students who need intervention before they fall further behind, with weekly alerts.</div></div>
+      <div class="mkt-feature-card mkt-reveal" style="transition-delay:0.1s"><div class="mkt-feat-icon" style="background:rgba(232,93,117,0.1)">🔗</div><div class="mkt-feat-tag">LMS Integration</div><div class="mkt-feat-title">Schoology LTI 1.3 + Grade Passback</div><div class="mkt-feat-body">Launch from Schoology, sync rosters automatically, and push scores back as grades. No separate login. No extra steps for students.</div></div>
+      <div class="mkt-feature-card mkt-reveal" style="transition-delay:0.2s"><div class="mkt-feat-icon" style="background:rgba(244,165,54,0.1)">🏆</div><div class="mkt-feat-tag">Motivation</div><div class="mkt-feat-title">Milestone Achievements</div><div class="mkt-feat-body">Students earn milestones as skills grow — from "First Submission" to "Grammar Champion." Progress is always visible and celebrated.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOR TEACHERS / STUDENTS ── -->
+<section class="mkt-section mkt-white" id="for-teachers">
+  <div class="mkt-inner">
+    <div class="section-label mkt-reveal">Who It's For</div>
+    <h2 class="section-title mkt-reveal" style="transition-delay:0.1s;margin-bottom:1.5rem">Designed for everyone in the classroom.</h2>
+    <div class="mkt-persona-tabs mkt-reveal" style="transition-delay:0.2s">
+      <button class="mkt-ptab active" onclick="switchMktTab('student')">For Students</button>
+      <button class="mkt-ptab" onclick="switchMktTab('teacher')">For Teachers</button>
+    </div>
+    <div class="mkt-pcontent active" id="mkt-tab-student">
+      <div>
+        <h3 style="font-size:1.8rem;margin-bottom:6px">Your writing coach, always available.</h3>
+        <p style="color:var(--text-secondary)">Instant feedback. No waiting for papers to be returned.</p>
+        <ul class="mkt-plist">
+          <li><div class="mkt-pcheck">✓</div>Submit writing and get detailed feedback in under 30 seconds</li>
+          <li><div class="mkt-pcheck">✓</div>See exactly which sentences are strong and which need improvement</li>
+          <li><div class="mkt-pcheck">✓</div>Practice the specific skills you're weakest at — not generic exercises</li>
+          <li><div class="mkt-pcheck">✓</div>Track your growth across all 6 writing dimensions over time</li>
+          <li><div class="mkt-pcheck">✓</div>Earn achievements as you reach new proficiency levels</li>
+        </ul>
+        <button class="btn btn-primary" style="margin-top:24px" onclick="openModal('modal-student')">✍️ Start Writing Now</button>
+      </div>
+      <div class="mkt-pmockup">
+        <div class="mkt-pm-header"><span style="font-family:'Playfair Display',serif;color:var(--white)">Writing Feedback</span><span class="mkt-pm-badge">Level 3.2</span></div>
+        <div style="padding:20px">
+          <div style="font-size:0.7rem;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px">Your Strengths ✓</div>
+          <div class="mkt-fb strength"><span>🟢</span><div style="font-size:0.82rem;color:rgba(255,255,255,0.7)"><strong style="color:var(--white)">"The evidence clearly supports the thesis"</strong> — Great use of specific data to back your argument.</div></div>
+          <div style="font-size:0.7rem;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.07em;margin:14px 0 10px">Improvements →</div>
+          <div class="mkt-fb improve"><span>🟡</span><div style="font-size:0.82rem;color:rgba(255,255,255,0.7)"><strong style="color:var(--white)">"However the students they said"</strong> — Try: <em style="color:var(--amber-light)">"Despite these challenges, students argue..."</em></div></div>
+          <div style="margin-top:14px;background:rgba(244,165,54,0.1);border:1px solid rgba(244,165,54,0.2);border-radius:8px;padding:10px;font-size:0.8rem;color:rgba(255,255,255,0.7)">🎯 <strong style="color:var(--amber)">Next Step:</strong> Practice exercise assigned — Using Evidence with Analysis.</div>
+        </div>
+      </div>
+    </div>
+    <div class="mkt-pcontent" id="mkt-tab-teacher">
+      <div>
+        <h3 style="font-size:1.8rem;margin-bottom:6px">See every student. Scale your impact.</h3>
+        <p style="color:var(--text-secondary)">From 30 students to 30 personalized learning paths.</p>
+        <ul class="mkt-plist">
+          <li><div class="mkt-pcheck">✓</div>Instant visual heatmap of every student's skill levels</li>
+          <li><div class="mkt-pcheck">✓</div>Automatic alerts when students haven't engaged in 7+ days</li>
+          <li><div class="mkt-pcheck">✓</div>Create assignments with one click; AI handles the rest</li>
+          <li><div class="mkt-pcheck">✓</div>Grades sync directly back to Schoology via LTI grade passback</li>
+          <li><div class="mkt-pcheck">✓</div>Track growth trends per student and per skill over the semester</li>
+          <li><div class="mkt-pcheck">✓</div>Common Core standards alignment reported automatically</li>
+        </ul>
+        <button class="btn btn-primary" style="margin-top:24px" onclick="openModal('modal-teacher-login')">📊 Open Teacher Dashboard</button>
+      </div>
+      <div class="mkt-pmockup">
+        <div class="mkt-pm-header"><span style="font-family:'Playfair Display',serif;color:var(--white)">Class Skill Heatmap</span><span class="mkt-pm-badge">7th Grade ELA</span></div>
+        <div style="padding:16px;overflow-x:auto">
+          <table style="width:100%;border-collapse:separate;border-spacing:0;font-size:0.72rem">
+            <tr><th style="text-align:left;color:rgba(255,255,255,0.35);padding:4px 8px;font-weight:600">Student</th><th style="color:rgba(255,255,255,0.35);padding:4px;font-weight:600">Org</th><th style="color:rgba(255,255,255,0.35);padding:4px;font-weight:600">Evid</th><th style="color:rgba(255,255,255,0.35);padding:4px;font-weight:600">Gram</th><th style="color:rgba(255,255,255,0.35);padding:4px;font-weight:600">Sent</th><th style="color:rgba(255,255,255,0.35);padding:4px;font-weight:600">Vocab</th><th style="color:rgba(255,255,255,0.35);padding:4px;font-weight:600">Arg</th></tr>
+            <tr><td style="color:rgba(255,255,255,0.7);padding:5px 8px">Alex R.</td><td style="text-align:center;padding:3px"><span class="hc hc4">L4</span></td><td style="text-align:center;padding:3px"><span class="hc hc2">L2</span></td><td style="text-align:center;padding:3px"><span class="hc hc3">L3</span></td><td style="text-align:center;padding:3px"><span class="hc hc4">L4</span></td><td style="text-align:center;padding:3px"><span class="hc hc3">L3</span></td><td style="text-align:center;padding:3px"><span class="hc hc2">L2</span></td></tr>
+            <tr><td style="color:rgba(255,255,255,0.7);padding:5px 8px">Jordan L.</td><td style="text-align:center;padding:3px"><span class="hc hc2">L2</span></td><td style="text-align:center;padding:3px"><span class="hc hc1">L1</span></td><td style="text-align:center;padding:3px"><span class="hc hc2">L2</span></td><td style="text-align:center;padding:3px"><span class="hc hc2">L2</span></td><td style="text-align:center;padding:3px"><span class="hc hc1">L1</span></td><td style="text-align:center;padding:3px"><span class="hc hc2">L2</span></td></tr>
+            <tr><td style="color:rgba(255,255,255,0.7);padding:5px 8px">Sam C.</td><td style="text-align:center;padding:3px"><span class="hc hc5">L5</span></td><td style="text-align:center;padding:3px"><span class="hc hc4">L4</span></td><td style="text-align:center;padding:3px"><span class="hc hc5">L5</span></td><td style="text-align:center;padding:3px"><span class="hc hc4">L4</span></td><td style="text-align:center;padding:3px"><span class="hc hc5">L5</span></td><td style="text-align:center;padding:3px"><span class="hc hc4">L4</span></td></tr>
+            <tr><td style="color:rgba(255,255,255,0.7);padding:5px 8px">Maya P.</td><td style="text-align:center;padding:3px"><span class="hc hc3">L3</span></td><td style="text-align:center;padding:3px"><span class="hc hc3">L3</span></td><td style="text-align:center;padding:3px"><span class="hc hc2">L2</span></td><td style="text-align:center;padding:3px"><span class="hc hc3">L3</span></td><td style="text-align:center;padding:3px"><span class="hc hc3">L3</span></td><td style="text-align:center;padding:3px"><span class="hc hc3">L3</span></td></tr>
+          </table>
+          <div style="margin-top:12px;background:rgba(232,93,117,0.1);border:1px solid rgba(232,93,117,0.2);border-radius:8px;padding:10px;font-size:0.78rem;color:rgba(255,255,255,0.7)">⚠️ <strong style="color:var(--rose)">Alert:</strong> Jordan L. needs immediate support.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TESTIMONIALS ── -->
+<section class="mkt-section mkt-cream-dark">
+  <div class="mkt-inner">
+    <div class="section-label mkt-reveal">Early Feedback</div>
+    <h2 class="section-title mkt-reveal" style="transition-delay:0.1s">Beta teachers are already seeing results.</h2>
+    <div class="mkt-testimonials">
+      <div class="mkt-testimonial mkt-reveal"><div class="mkt-stars">★★★★★</div><p>"My struggling writers finally understand what they need to work on. One student went from a Level 1 to Level 3 in six weeks."</p><div class="mkt-author"><div class="mkt-avatar" style="background:linear-gradient(135deg,var(--amber),var(--amber-dark))">SJ</div><div><strong>Sarah Johnson</strong><span>7th Grade ELA, Springfield Middle</span></div></div></div>
+      <div class="mkt-testimonial mkt-reveal" style="transition-delay:0.1s"><div class="mkt-stars">★★★★★</div><p>"The Schoology integration was seamless. Students are submitting more because they get feedback immediately instead of waiting a week."</p><div class="mkt-author"><div class="mkt-avatar" style="background:linear-gradient(135deg,var(--sky),#3A7DB5)">MR</div><div><strong>Michael Rodriguez</strong><span>ELA Dept Head, Lincoln USD</span></div></div></div>
+      <div class="mkt-testimonial mkt-reveal" style="transition-delay:0.2s"><div class="mkt-stars">★★★★★</div><p>"The heatmap alone saves me hours every week. I open WriteLift and know instantly which skills to address in our next lesson."</p><div class="mkt-author"><div class="mkt-avatar" style="background:linear-gradient(135deg,var(--emerald),#1A9E6A)">AP</div><div><strong>Amanda Park</strong><span>8th Grade Writing, Westview HS</span></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PRICING ── -->
+<section class="mkt-section mkt-white" id="pricing">
+  <div class="mkt-inner" style="text-align:center">
+    <div class="section-label mkt-reveal" style="justify-content:center">Pricing</div>
+    <h2 class="section-title mkt-reveal" style="transition-delay:0.1s;max-width:100%">Simple, transparent pricing.</h2>
+    <p class="section-body mkt-reveal" style="transition-delay:0.2s;text-align:center;margin:0.5rem auto 2.5rem;max-width:480px">Start free. Upgrade when you're ready. No contracts during beta.</p>
+    <div class="mkt-pricing-grid">
+      <div class="mkt-price-card mkt-reveal"><div class="mkt-price-tier">Teacher</div><div class="mkt-price-num">$20<span>/mo</span></div><div class="mkt-price-period">per teacher · billed monthly</div><ul class="mkt-price-list"><li>✓ Up to 60 students</li><li>✓ AI assessment on all submissions</li><li>✓ Skill heatmap &amp; growth tracking</li><li>✓ Schoology LTI integration</li><li>✓ Microsoft SSO</li></ul><button class="btn btn-secondary btn-full" onclick="openModal('modal-teacher-login')">Start Free Trial</button></div>
+      <div class="mkt-price-card mkt-popular mkt-reveal" style="transition-delay:0.1s"><div class="mkt-popular-badge">Most Popular</div><div class="mkt-price-tier">School</div><div class="mkt-price-num">$8<span>/student</span></div><div class="mkt-price-period">per year · school-wide license</div><ul class="mkt-price-list"><li>✓ Unlimited teachers &amp; students</li><li>✓ Everything in Teacher plan</li><li>✓ Admin dashboard &amp; reporting</li><li>✓ FERPA compliance documentation</li><li>✓ Priority support</li></ul><button class="btn btn-primary btn-full" onclick="openModal('modal-teacher-login')">Contact for Pricing</button></div>
+      <div class="mkt-price-card mkt-reveal" style="transition-delay:0.2s"><div class="mkt-price-tier">District</div><div class="mkt-price-num" style="font-size:2rem">Custom</div><div class="mkt-price-period">district-wide · flexible terms</div><ul class="mkt-price-list"><li>✓ Everything in School plan</li><li>✓ Custom AI benchmarks</li><li>✓ Professional development</li><li>✓ Dedicated customer success</li><li>✓ Data export &amp; API access</li></ul><button class="btn btn-secondary btn-full" onclick="openModal('modal-teacher-login')">Talk to Sales</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── INTEGRATIONS ── -->
+<section class="mkt-section mkt-cream" style="padding:50px 5%">
+  <div style="max-width:900px;margin:0 auto;text-align:center">
+    <div style="font-size:0.8rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:1.5rem">Works with the tools you already use</div>
+    <div class="mkt-int-logos">
+      <div class="mkt-int-logo">🏫 Schoology</div>
+      <div class="mkt-int-logo">🪟 Microsoft SSO</div>
+      <div class="mkt-int-logo">🔑 Clever</div>
+      <div class="mkt-int-logo">🔗 ClassLink</div>
+      <div class="mkt-int-logo">📐 Common Core</div>
+      <div class="mkt-int-logo">🔒 FERPA + COPPA</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ── -->
+<section class="mkt-cta" id="cta">
+  <div style="max-width:700px;margin:0 auto;text-align:center;position:relative;z-index:1">
+    <h2 style="font-family:'Playfair Display',serif;font-size:clamp(2.2rem,5vw,4rem);color:var(--white);font-weight:900;margin-bottom:1rem">Ready to lift<br><em style="color:var(--amber);font-style:italic">every writer?</em></h2>
+    <p style="color:rgba(245,240,232,0.55);font-size:1.1rem;margin-bottom:2rem">Join our beta program. Try WriteLift in your classroom today.</p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+      <button class="btn-primary" onclick="openModal('modal-student')">✍️ Start Writing Now</button>
+      <button class="btn-teacher-outline" onclick="openModal('modal-teacher-login')">📊 Teacher Setup</button>
+    </div>
+    <div style="margin-top:1.2rem;font-size:0.8rem;color:rgba(245,240,232,0.3)">No credit card required · Free beta access · Open to all classrooms</div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer class="mkt-footer">
+  <div class="mkt-inner">
+    <div class="mkt-footer-grid">
+      <div>
+        <div class="footer-logo-wrap"><div class="nav-logo-mark">W</div> WriteLift AI</div>
+        <p style="font-size:0.875rem;color:rgba(245,240,232,0.4);margin:10px 0 16px;line-height:1.6">Personalized AI writing instruction for every K-12 student — especially those who need it most.</p>
+      </div>
+      <div><div class="mkt-footer-title">Product</div><ul class="mkt-footer-links"><li><a href="#features">Features</a></li><li><a href="#for-teachers">For Teachers</a></li><li><a href="#pricing">Pricing</a></li><li><a href="#how-it-works">How It Works</a></li></ul></div>
+      <div><div class="mkt-footer-title">Platform</div><ul class="mkt-footer-links"><li><a href="#">Schoology Integration</a></li><li><a href="#">Common Core Alignment</a></li><li><a href="#">FERPA Compliance</a></li><li><a href="#">Setup Guide</a></li></ul></div>
+      <div><div class="mkt-footer-title">Company</div><ul class="mkt-footer-links"><li><a href="#">About</a></li><li><a href="#">Contact</a></li><li><a href="#">Privacy Policy</a></li><li><a href="#">Terms of Service</a></li></ul></div>
+    </div>
+    <div class="mkt-footer-bottom">
+      <span>© 2026 WriteLift AI · Now in Beta</span>
+      <div style="display:flex;gap:16px"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">FERPA</a></div>
+    </div>
+  </div>
+</footer>
+
+</div><!-- end screen-landing -->
+
+<!-- ══════════════════════════════════════════
+     SCREEN: STUDENT
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-student">
+  <div class="topnav">
+    <div class="nav-brand" onclick="showScreen('landing')">
+      <div class="nav-mark">W</div> WriteLift AI
+    </div>
+    <div class="nav-right">
+      <div class="nav-user">Student: <span id="s-nav-name">—</span></div>
+      <button class="btn-nav" onclick="showScreen('landing')">← Exit</button>
+    </div>
+  </div>
+  <div class="student-layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-greeting">
+        <div class="sidebar-name" id="sidebar-name">Welcome</div>
+        <div class="sidebar-class" id="sidebar-class">—</div>
+      </div>
+      <div class="sidebar-level">
+        <div class="sl-label">Overall Level</div>
+        <div class="sl-value" id="sidebar-level">—</div>
+        <div class="sl-sub">out of 5</div>
+      </div>
+      <ul class="sidebar-nav">
+        <li class="snav-item active" onclick="switchStudentTab('dashboard')"><span class="snav-icon">⌂</span> Dashboard</li>
+        <li class="snav-item" onclick="switchStudentTab('write')"><span class="snav-icon">✍️</span> Write</li>
+        <li class="snav-item" onclick="switchStudentTab('exercises')"><span class="snav-icon">🎯</span> Exercises <span id="ex-badge" style="background:var(--amber);color:var(--navy);border-radius:100px;padding:1px 7px;font-size:0.7rem;margin-left:4px;display:none"></span></li>
+        <li class="snav-item" onclick="switchStudentTab('readings')"><span class="snav-icon">📖</span> Readings <span id="read-badge" style="background:var(--sky);color:var(--white);border-radius:100px;padding:1px 7px;font-size:0.7rem;margin-left:4px;display:none"></span></li>
+        <li class="snav-item" onclick="switchStudentTab('milestones')"><span class="snav-icon">🏆</span> Milestones</li>
+      </ul>
+    </div>
+    <!-- Main -->
+    <div class="student-main" id="student-main-content">
+      <!-- Content injected by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN: TEACHER
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-teacher">
+  <div class="topnav">
+    <div class="nav-brand" onclick="showScreen('landing')">
+      <div class="nav-mark">W</div> WriteLift AI
+    </div>
+    <div class="nav-right">
+      <div class="nav-user">Teacher View — <span id="t-class-display">—</span></div>
+      <button class="btn-nav btn-sm" onclick="exportCSV()" style="margin-right:4px">⬇ Export</button>
+      <button class="btn-nav" onclick="showScreen('landing')">← Exit</button>
+    </div>
+  </div>
+  <div class="teacher-main" id="teacher-main-content">
+    <!-- Content injected by JS -->
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════ -->
+
+<!-- Student Setup -->
+<div class="modal-bg hidden" id="modal-student">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-student')">✕</button>
+    <h2 class="modal-title">Join Your Class</h2>
+    <p class="modal-sub">Enter your info and your teacher will see your work.</p>
+    <div class="form-group">
+      <label class="form-label">Your First & Last Name <span>*</span></label>
+      <input class="form-input" id="s-name" type="text" placeholder="e.g. Alex Rivera" autocomplete="name">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Grade Level <span>*</span></label>
+        <select class="form-select" id="s-grade">
+          <option value="">Select grade</option>
+          <option value="5">5th Grade</option>
+          <option value="6">6th Grade</option>
+          <option value="7">7th Grade</option>
+          <option value="8">8th Grade</option>
+          <option value="9">9th Grade</option>
+          <option value="10">10th Grade</option>
+          <option value="11">11th Grade</option>
+          <option value="12">12th Grade</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Class Period</label>
+        <input class="form-input" id="s-period" type="text" placeholder="e.g. Period 2">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Writing Prompt (from your teacher)</label>
+      <input class="form-input" id="s-prompt-code" type="text" placeholder="Enter prompt code or leave blank">
+      <div class="form-hint">Your teacher will give you a code, or you can use a free-write prompt.</div>
+    </div>
+    <button class="btn btn-primary btn-full" style="margin-top:8px" onclick="studentSignIn()">Start Writing →</button>
+  </div>
+</div>
+
+<!-- Teacher Setup / Login -->
+<div class="modal-bg hidden" id="modal-teacher-login">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-teacher-login')">✕</button>
+    <h2 class="modal-title">Teacher Dashboard</h2>
+    <p class="modal-sub">Set up your class and the AI will email you every student result.</p>
+    <div class="form-group">
+      <label class="form-label">Teacher Email <span>*</span></label>
+      <input class="form-input" id="t-email" type="email" value="kwiatekjo@lynnschools.org" placeholder="your@email.com">
+      <div class="form-hint">All student results will be sent to this address automatically.</div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Class Name <span>*</span></label>
+        <input class="form-input" id="t-class" type="text" placeholder="e.g. 7th Grade ELA Period 2">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Grade Level</label>
+        <select class="form-select" id="t-grade">
+          <option value="6">6th Grade</option>
+          <option value="7" selected>7th Grade</option>
+          <option value="8">8th Grade</option>
+          <option value="9">9th Grade</option>
+          <option value="10">10th Grade</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Writing Prompt for Students</label>
+      <textarea class="form-textarea" id="t-prompt" placeholder="e.g. Write an argumentative essay about whether schools should have year-round schedules. Use at least two pieces of evidence and address one counterargument." style="min-height:90px"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Prompt Code (share with students)</label>
+      <input class="form-input" id="t-code" type="text" placeholder="e.g. JOHNSON2025" style="font-family:'DM Mono',monospace">
+      <div class="form-hint">Students enter this code so their work is linked to your class.</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">OpenAI API Key <span>*</span></label>
+      <input class="form-input" id="t-apikey" type="password" placeholder="sk-...">
+      <div class="api-note">
+        Free key at <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a>. Stored only in your browser. Students need this to submit essays.
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">EmailJS Setup (for email notifications)</label>
+      <div class="form-row">
+        <div>
+          <input class="form-input" id="t-emailjs-public" type="text" placeholder="EmailJS Public Key">
+        </div>
+        <div>
+          <input class="form-input" id="t-emailjs-service" type="text" placeholder="Service ID">
+        </div>
+      </div>
+      <input class="form-input" id="t-emailjs-template" type="text" placeholder="Template ID" style="margin-top:8px">
+      <div class="api-note" style="margin-top:8px">
+        Free at <a href="https://www.emailjs.com/" target="_blank">emailjs.com</a> — connect your Gmail/Outlook. 
+        <strong>Or skip this</strong> — results still show in the dashboard and you can export to CSV.
+      </div>
+    </div>
+    <button class="btn btn-primary btn-full" style="margin-top:8px" onclick="teacherSetup()">Open Dashboard →</button>
+  </div>
+</div>
+
+<!-- Submission Detail Modal -->
+<div class="modal-bg hidden" id="modal-submission">
+  <div class="modal" style="max-width:680px">
+    <button class="modal-close" onclick="closeModal('modal-submission')">✕</button>
+    <div id="modal-submission-content"></div>
+  </div>
+</div>
+
+<!-- Add / Edit Class Modal -->
+<div class="modal-bg hidden" id="modal-add-class">
+  <div class="modal" id="modal-add-class-content">
+    <!-- filled by openAddClassModal() -->
+  </div>
+</div>
+
+<!-- Move Student Modal -->
+<div class="modal-bg hidden" id="modal-move-student">
+  <div class="modal" id="modal-move-student-content">
+    <!-- filled by openMoveStudentModal() -->
+  </div>
+</div>
+
+<!-- API Key prompt -->
+<div class="modal-bg hidden" id="modal-apikey">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-apikey')">✕</button>
+    <h2 class="modal-title">API Key Required</h2>
+    <p class="modal-sub">An OpenAI key is needed to power the AI assessment. This is a one-time setup — the key saves in your browser.</p>
+    <div class="form-group">
+      <label class="form-label">OpenAI API Key <span>*</span></label>
+      <input class="form-input" id="fallback-apikey" type="password" placeholder="sk-proj-... or sk-...">
+    </div>
+    <div class="api-note" style="margin-bottom:16px">
+      Get a free key at <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a> → sign in → <strong>Create new secret key</strong> → copy and paste it above.
+    </div>
+    <button class="btn btn-primary btn-full" onclick="saveFallbackKey()">Save Key &amp; Continue →</button>
+  </div>
+</div>
+
 </body>
 </html>
