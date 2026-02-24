@@ -548,6 +548,46 @@ h1,h2,h3,h4{font-family:'Playfair Display',serif;line-height:1.15}
 .color-swatch.selected{border-color:var(--navy);transform:scale(1.15)}
 .color-swatch:hover{transform:scale(1.1)}
 
+/* ── READINGS CALLOUT (post-submission) ── */
+.readings-callout{margin-top:16px;background:rgba(91,164,207,0.07);border:1px solid rgba(91,164,207,0.25);border-radius:12px;padding:18px 20px}
+.rc-callout-header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+.rc-callout-icon{font-size:1.2rem;margin-right:6px}
+.rc-callout-title{font-weight:700;font-size:1rem;color:var(--navy)}
+.rc-callout-lexile{font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:100px;border:1px solid;white-space:nowrap}
+.rc-callout-sub{font-size:0.85rem;color:#3D5166;margin-bottom:12px;line-height:1.5}
+.rc-callout-article{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:var(--white);border-radius:8px;margin-bottom:8px;border:1px solid var(--border)}
+.rc-callout-article-title{font-weight:600;font-size:0.875rem;color:var(--navy)}
+.rc-callout-article-meta{font-size:0.72rem;color:#6B8299;margin-top:2px}
+
+/* ── READINGS TAB ── */
+.lexile-banner{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.lexile-left{display:flex;align-items:center;gap:16px}
+.lexile-badge{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:900;padding:10px 18px;border-radius:10px;border:1px solid;line-height:1}
+.lexile-label{font-weight:700;font-size:0.95rem;color:var(--navy)}
+.lexile-sub{font-size:0.78rem;color:#6B8299;margin-top:2px}
+.readings-legend{display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:0.78rem;color:#6B8299;font-weight:500}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.readings-section-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:14px}
+.readings-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:8px}
+.reading-card{background:var(--white);border-radius:14px;border:1px solid var(--border);overflow:hidden;display:flex;transition:box-shadow 0.2s,transform 0.2s}
+.reading-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.reading-done{opacity:0.7}
+.reading-done:hover{opacity:1}
+.rc-accent{width:5px;flex-shrink:0}
+.rc-body{padding:18px 20px;flex:1}
+.rc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px;flex-wrap:wrap}
+.rc-tag{font-size:0.7rem;font-weight:700;padding:3px 9px;border-radius:100px;border:1px solid;white-space:nowrap}
+.rc-lexile{font-family:'DM Mono',monospace;font-size:0.72rem;color:#6B8299;background:var(--cream);padding:2px 8px;border-radius:100px}
+.rc-subject{font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:#6B8299;margin-bottom:5px}
+.rc-title{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;color:var(--navy);margin-bottom:8px;line-height:1.3}
+.rc-summary{font-size:0.82rem;color:var(--text-secondary);line-height:1.6;margin-bottom:12px}
+.rc-skills{font-size:0.75rem;color:#6B8299;margin-bottom:14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.rc-skill-chip{background:var(--cream);border:1px solid var(--border);border-radius:100px;padding:2px 8px;font-size:0.7rem;font-weight:600;color:#6B8299}
+.rc-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.rc-source-link{font-size:0.75rem;color:var(--sky);text-decoration:none;font-weight:600}
+.rc-source-link:hover{text-decoration:underline}
+
 /* ── RESPONSIVE ── */
 @media(max-width:900px){
   .student-layout{grid-template-columns:1fr}
@@ -884,6 +924,7 @@ h1,h2,h3,h4{font-family:'Playfair Display',serif;line-height:1.15}
         <li class="snav-item active" onclick="switchStudentTab('dashboard')"><span class="snav-icon">⌂</span> Dashboard</li>
         <li class="snav-item" onclick="switchStudentTab('write')"><span class="snav-icon">✍️</span> Write</li>
         <li class="snav-item" onclick="switchStudentTab('exercises')"><span class="snav-icon">🎯</span> Exercises <span id="ex-badge" style="background:var(--amber);color:var(--navy);border-radius:100px;padding:1px 7px;font-size:0.7rem;margin-left:4px;display:none"></span></li>
+        <li class="snav-item" onclick="switchStudentTab('readings')"><span class="snav-icon">📖</span> Readings <span id="read-badge" style="background:var(--sky);color:var(--white);border-radius:100px;padding:1px 7px;font-size:0.7rem;margin-left:4px;display:none"></span></li>
         <li class="snav-item" onclick="switchStudentTab('milestones')"><span class="snav-icon">🏆</span> Milestones</li>
       </ul>
     </div>
@@ -1074,6 +1115,8 @@ const STATE = {
   studentTab: 'dashboard',
   teacherTab: 'overview',
   activeClassId: null,
+  readings: [],        // [{ id, title, lexile, topic, url, summary, assignedAt, read, readAt }]
+  studentLexile: null, // estimated from writing samples
 };
 
 const SKILL_COLORS = {
@@ -1113,6 +1156,8 @@ function saveData() {
     teacher: STATE.teacher,
     classes: STATE.classes,
     submissions: STATE.submissions,
+    readings: STATE.readings,
+    studentLexile: STATE.studentLexile,
   }));
 }
 // ── Save submission to Google Sheets ──
@@ -1163,6 +1208,8 @@ function loadData() {
     if (d.teacher) STATE.teacher = d.teacher;
     if (d.classes) STATE.classes = d.classes;
     if (d.submissions) STATE.submissions = d.submissions;
+    if (d.readings) STATE.readings = d.readings;
+    if (d.studentLexile) STATE.studentLexile = d.studentLexile;
   } catch(e) {}
 }
 loadData();
@@ -1239,7 +1286,7 @@ function teacherSetup() {
 function switchStudentTab(tab) {
   STATE.studentTab = tab;
   document.querySelectorAll('.snav-item').forEach((el, i) => {
-    el.classList.toggle('active', ['dashboard','write','exercises','milestones'][i] === tab);
+    el.classList.toggle('active', ['dashboard','write','exercises','readings','milestones'][i] === tab);
   });
   renderStudentDashboard();
 }
@@ -1259,10 +1306,19 @@ function renderStudentDashboard() {
   if (pending > 0) { badge.textContent = pending; badge.style.display = 'inline'; }
   else badge.style.display = 'none';
 
+  // Readings badge — show count of unread assigned readings
+  const readBadge = document.getElementById('read-badge');
+  if (readBadge) {
+    const unread = (STATE.readings || []).filter(r => !r.read).length;
+    if (unread > 0) { readBadge.textContent = unread; readBadge.style.display = 'inline'; }
+    else readBadge.style.display = 'none';
+  }
+
   const container = document.getElementById('student-main-content');
   if (STATE.studentTab === 'dashboard') container.innerHTML = renderTabDashboard();
   else if (STATE.studentTab === 'write') container.innerHTML = renderTabWrite();
   else if (STATE.studentTab === 'exercises') container.innerHTML = renderTabExercises();
+  else if (STATE.studentTab === 'readings') renderTabReadings(container);
   else if (STATE.studentTab === 'milestones') container.innerHTML = renderTabMilestones();
   attachStudentEvents();
 }
@@ -1335,7 +1391,22 @@ function renderTabDashboard() {
     </div>` : ''}
     <div style="text-align:center;margin-top:12px">
       <button class="btn btn-primary" onclick="switchStudentTab('write')">✍️ Submit New Writing</button>
-    </div>`;
+      ${STATE.studentLexile ? `<button class="btn btn-secondary" style="margin-left:10px" onclick="switchStudentTab('readings')">📖 View Readings (${(STATE.readings||[]).filter(r=>!r.read).length} new)</button>` : ''}
+    </div>
+    ${STATE.studentLexile ? (() => {
+      const band = lexileBand(STATE.studentLexile);
+      return \`<div class="panel" style="margin-top:16px;border-left:4px solid \${band.color}">
+        <div class="panel-title">📖 Your Reading Level</div>
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+          <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:\${band.color}">\${STATE.studentLexile}L</div>
+          <div>
+            <div style="font-weight:700;font-size:0.9rem">\${band.label}</div>
+            <div style="font-size:0.78rem;color:#6B8299">\${(STATE.readings||[]).filter(r=>!r.read).length} articles assigned at your level</div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="switchStudentTab('readings')" style="margin-left:auto">View Readings →</button>
+        </div>
+      </div>\`;
+    })() : ''}`;
 }
 
 // ── TAB: WRITE ──
@@ -1481,6 +1552,12 @@ async function submitEssay() {
     // Store exercises
     STATE.exercises.unshift(...exercises.filter(e => !e.completed));
 
+    // Estimate Lexile and assign leveled readings
+    const lexile = estimateLexile(content, result.overall_score);
+    STATE.studentLexile = lexile;
+    const newReadings = assignReadings(lexile, result.scores);
+    STATE.readings = [...newReadings, ...(STATE.readings || []).filter(r => r.read).slice(0, 10)];
+
     // Save submission
     const submission = {
       id: Date.now(),
@@ -1526,8 +1603,13 @@ async function submitEssay() {
     const badge = document.getElementById('ex-badge');
     if (badge) { badge.textContent = pending; badge.style.display = pending ? 'inline' : 'none'; }
 
+    // Update readings badge
+    const unreadCount = (STATE.readings || []).filter(r => !r.read).length;
+    const readBadge = document.getElementById('read-badge');
+    if (readBadge) { readBadge.textContent = unreadCount; readBadge.style.display = unreadCount ? 'inline' : 'none'; }
+
     window.scrollTo({ top: resultEl?.offsetTop - 80, behavior: 'smooth' });
-    showToast('✅ Assessment complete! Check your results below.');
+    showToast('✅ Assessment complete! New readings assigned — check the 📖 Readings tab.');
 
   } catch (err) {
     hideLoading();
@@ -1751,6 +1833,39 @@ function renderAssessmentResult(result, newMilestones) {
           <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--amber-dark);font-weight:700;margin-bottom:8px">🎉 New Milestones Earned!</div>
           ${newMilestones.map(m => `<div style="font-size:0.9rem;margin-bottom:4px">${m.icon} <strong>${m.label}</strong></div>`).join('')}
         </div>` : ''}
+
+        ${STATE.studentLexile ? (() => {
+          const band = lexileBand(STATE.studentLexile);
+          const unread = (STATE.readings || []).filter(r => !r.read);
+          const preview = unread.slice(0, 2);
+          return `
+        <div class="readings-callout">
+          <div class="rc-callout-header">
+            <div>
+              <span class="rc-callout-icon">📖</span>
+              <span class="rc-callout-title">New Readings Assigned!</span>
+            </div>
+            <span class="rc-callout-lexile" style="background:${band.color}20;color:${band.color};border-color:${band.color}30">${STATE.studentLexile}L · ${band.label}</span>
+          </div>
+          <p class="rc-callout-sub">We matched ${unread.length} article${unread.length !== 1 ? 's' : ''} to your reading level to help strengthen your writing skills.</p>
+          ${preview.map(r => `
+          <div class="rc-callout-article">
+            <div>
+              <div class="rc-callout-article-title">${r.title}</div>
+              <div class="rc-callout-article-meta">${r.source} · ${r.lexileMin}–${r.lexileMax}L${r.isStretch ? ' · 🔥 Stretch' : ''}</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" style="flex-shrink:0" onclick="switchStudentTab('readings')">Read →</button>
+          </div>`).join('')}
+          <button class="btn btn-primary btn-full" style="margin-top:14px" onclick="switchStudentTab('readings')">
+            📖 Go to My Readings (${unread.length} waiting)
+          </button>
+        </div>`;
+        })() : ''}
+
+        <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
+          <button class="btn btn-secondary" style="flex:1" onclick="switchStudentTab('exercises')">🎯 Do Practice Exercises</button>
+          <button class="btn btn-secondary" style="flex:1" onclick="switchStudentTab('readings')">📖 View My Readings</button>
+        </div>
       </div>
     </div>`;
 }
@@ -2263,6 +2378,322 @@ function exportCSV() {
   a.download = `writelift_${t.className?.replace(/\s+/g,'_') || 'class'}_${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
   showToast('CSV exported!');
+}
+
+// ══════════════════════════════════════════
+// READINGS — LEXILE ESTIMATION & LIBRARY
+// ══════════════════════════════════════════
+
+// Estimate Lexile from writing sample using proxy metrics
+function estimateLexile(text, overallScore) {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+  const avgWordLen = words.reduce((a, w) => a + w.length, 0) / (words.length || 1);
+  const avgSentLen = words.length / (sentences.length || 1);
+  // Lexile proxy: longer words + longer sentences = higher Lexile
+  // Calibrated to typical K-12 ranges (400L–1200L)
+  const base = (avgWordLen * 60) + (avgSentLen * 8) + (overallScore * 3);
+  const lexile = Math.round(Math.min(1300, Math.max(200, base)));
+  return lexile;
+}
+
+// Lexile band labels
+function lexileBand(lexile) {
+  if (lexile < 420) return { band: 'BR', label: 'Beginning Reader', grade: 'K–1', color: '#E85D75' };
+  if (lexile < 520) return { band: '2', label: '2nd Grade Level', grade: 'Gr. 2', color: '#FB923C' };
+  if (lexile < 620) return { band: '3', label: '3rd Grade Level', grade: 'Gr. 3', color: '#F4A536' };
+  if (lexile < 740) return { band: '4', label: '4th Grade Level', grade: 'Gr. 4', color: '#F4A536' };
+  if (lexile < 830) return { band: '5', label: '5th Grade Level', grade: 'Gr. 5', color: '#FBBF24' };
+  if (lexile < 925) return { band: '6', label: '6th Grade Level', grade: 'Gr. 6', color: '#34D399' };
+  if (lexile < 970) return { band: '7', label: '7th Grade Level', grade: 'Gr. 7', color: '#2ECC8A' };
+  if (lexile < 1010) return { band: '8', label: '8th Grade Level', grade: 'Gr. 8', color: '#5BA4CF' };
+  if (lexile < 1080) return { band: '9-10', label: 'High School', grade: 'Gr. 9–10', color: '#818CF8' };
+  return { band: '11-12', label: 'Advanced', grade: 'Gr. 11–12', color: '#A78BFA' };
+}
+
+// Reading library — curated real articles organized by Lexile range and topic
+// Each article has a real URL to a freely accessible article
+const READING_LIBRARY = [
+  // ── LOW (400–620L) ──
+  { id: 'r01', lexileMin: 400, lexileMax: 640, topic: 'science', subject: 'Animals',
+    title: 'Why Do Cats Purr?', source: 'Newsela',
+    summary: 'Scientists have studied why cats purr — and the reasons might surprise you. From comfort to healing, purring does more than you think.',
+    url: 'https://newsela.com/read/why-cats-purr/id/2001560/',
+    skills: ['vocabulary', 'evidence'] },
+  { id: 'r02', lexileMin: 400, lexileMax: 640, topic: 'social studies', subject: 'History',
+    title: 'The Story of Rosa Parks', source: 'Ducksters',
+    summary: 'Rosa Parks refused to give up her seat on a Montgomery bus in 1955, sparking a movement that changed American history.',
+    url: 'https://www.ducksters.com/biography/women_leaders/rosa_parks.php',
+    skills: ['organization', 'argument_strength'] },
+  { id: 'r03', lexileMin: 420, lexileMax: 650, topic: 'science', subject: 'Space',
+    title: 'What Is the Moon Made Of?', source: 'NASA Space Place',
+    summary: 'The Moon looks smooth from Earth, but up close it is covered in craters, mountains, and ancient lava fields. Find out what scientists have discovered.',
+    url: 'https://spaceplace.nasa.gov/moon/en/',
+    skills: ['vocabulary', 'evidence'] },
+  { id: 'r04', lexileMin: 450, lexileMax: 660, topic: 'social studies', subject: 'Geography',
+    title: 'The Amazon Rainforest', source: 'National Geographic Kids',
+    summary: 'The Amazon is the world's largest rainforest and home to millions of species. Learn why scientists call it the lungs of the Earth.',
+    url: 'https://kids.nationalgeographic.com/nature/habitats/article/rain-forest',
+    skills: ['evidence', 'organization'] },
+  { id: 'r05', lexileMin: 480, lexileMax: 670, topic: 'science', subject: 'Health',
+    title: 'Why Do We Dream?', source: 'Science News for Students',
+    summary: 'Dreams happen during sleep, but scientists still debate why. Some think dreams help us process emotions and memories.',
+    url: 'https://www.snexplores.org/article/explainer-what-are-dreams',
+    skills: ['vocabulary', 'evidence'] },
+
+  // ── MID-LOW (620–800L) ──
+  { id: 'r06', lexileMin: 620, lexileMax: 800, topic: 'science', subject: 'Environment',
+    title: 'Plastic in Our Oceans', source: 'National Geographic',
+    summary: 'Millions of tons of plastic enter the ocean each year, threatening sea life and ecosystems. What can be done to stop it?',
+    url: 'https://www.nationalgeographic.com/environment/article/plastic-pollution',
+    skills: ['argument_strength', 'evidence'] },
+  { id: 'r07', lexileMin: 620, lexileMax: 800, topic: 'social studies', subject: 'Civil Rights',
+    title: 'The March on Washington', source: 'History.com',
+    summary: 'On August 28, 1963, over 250,000 people gathered in Washington D.C. for one of the most important demonstrations in American history.',
+    url: 'https://www.history.com/topics/black-history/march-on-washington',
+    skills: ['organization', 'argument_strength'] },
+  { id: 'r08', lexileMin: 640, lexileMax: 810, topic: 'science', subject: 'Technology',
+    title: 'How Artificial Intelligence Works', source: 'Science News for Students',
+    summary: 'AI powers everything from voice assistants to self-driving cars. But how does a computer actually learn to think?',
+    url: 'https://www.snexplores.org/article/explainer-artificial-intelligence',
+    skills: ['vocabulary', 'evidence'] },
+  { id: 'r09', lexileMin: 650, lexileMax: 820, topic: 'social studies', subject: 'Economics',
+    title: 'What Is the Minimum Wage Debate?', source: 'Newsela',
+    summary: 'Should the federal minimum wage be raised? People on both sides have strong arguments. Here's what the debate is really about.',
+    url: 'https://newsela.com/read/minimum-wage-debate/id/57916/',
+    skills: ['argument_strength', 'evidence'] },
+  { id: 'r10', lexileMin: 660, lexileMax: 830, topic: 'science', subject: 'Climate',
+    title: 'Climate Change: The Basics', source: 'NASA Climate Kids',
+    summary: 'Earth's climate has always changed, but human activity is speeding it up dramatically. Scientists explain what's happening and why it matters.',
+    url: 'https://climatekids.nasa.gov/climate-change-meaning/',
+    skills: ['evidence', 'organization'] },
+
+  // ── MID (800–970L) ──
+  { id: 'r11', lexileMin: 800, lexileMax: 970, topic: 'social studies', subject: 'Government',
+    title: 'How a Bill Becomes a Law', source: 'Congress.gov',
+    summary: 'The process of turning an idea into a federal law is long and complicated. Learn each step Congress must follow.',
+    url: 'https://www.congress.gov/legislative-process',
+    skills: ['organization', 'argument_strength'] },
+  { id: 'r12', lexileMin: 800, lexileMax: 970, topic: 'science', subject: 'Biology',
+    title: 'CRISPR: Editing the Code of Life', source: 'Science News for Students',
+    summary: 'Scientists can now edit genes with a tool called CRISPR. It could cure diseases — but also raises serious ethical questions.',
+    url: 'https://www.snexplores.org/article/crispr-gene-editing-explainer',
+    skills: ['vocabulary', 'evidence', 'argument_strength'] },
+  { id: 'r13', lexileMin: 820, lexileMax: 980, topic: 'social studies', subject: 'Media',
+    title: 'How to Spot Fake News', source: 'Common Sense Media',
+    summary: 'Misinformation spreads quickly online. Here are the key strategies experts use to evaluate whether a news story is real.',
+    url: 'https://www.commonsense.org/education/articles/students-and-teachers-need-to-know-how-to-spot-fake-news',
+    skills: ['evidence', 'argument_strength'] },
+  { id: 'r14', lexileMin: 830, lexileMax: 990, topic: 'science', subject: 'Space',
+    title: 'The Search for Life on Mars', source: 'NASA',
+    summary: 'Mars rovers have found evidence of ancient water. Could life have once existed on the Red Planet — or could it exist there now?',
+    url: 'https://science.nasa.gov/mars/life/',
+    skills: ['evidence', 'vocabulary'] },
+  { id: 'r15', lexileMin: 840, lexileMax: 990, topic: 'social studies', subject: 'Economics',
+    title: 'The Gender Pay Gap Explained', source: 'Pew Research Center',
+    summary: 'Women earn less than men on average in the U.S. Researchers have studied why — and whether the gap is narrowing.',
+    url: 'https://www.pewresearch.org/social-trends/2023/03/01/the-enduring-grip-of-the-gender-pay-gap/',
+    skills: ['evidence', 'argument_strength'] },
+
+  // ── MID-HIGH (970–1100L) ──
+  { id: 'r16', lexileMin: 970, lexileMax: 1100, topic: 'social studies', subject: 'History',
+    title: 'The Causes of World War I', source: 'History.com',
+    summary: 'The assassination of Archduke Franz Ferdinand sparked a global war, but tensions had been building for decades. Historians still debate the root causes.',
+    url: 'https://www.history.com/topics/world-war-i/world-war-i-history',
+    skills: ['organization', 'argument_strength', 'evidence'] },
+  { id: 'r17', lexileMin: 970, lexileMax: 1110, topic: 'science', subject: 'Psychology',
+    title: 'The Science of Motivation', source: 'Scientific American',
+    summary: 'What drives people to achieve? Psychologists have identified key factors that separate high performers from those who give up.',
+    url: 'https://www.scientificamerican.com/article/the-science-of-motivation/',
+    skills: ['vocabulary', 'evidence'] },
+  { id: 'r18', lexileMin: 980, lexileMax: 1120, topic: 'social studies', subject: 'Ethics',
+    title: 'Should Zoos Exist?', source: 'ProCon.org',
+    summary: 'Zoos protect endangered species and educate the public — but critics argue that keeping animals captive is ethically wrong. What do you think?',
+    url: 'https://zoo-animals.procon.org/',
+    skills: ['argument_strength', 'evidence', 'organization'] },
+  { id: 'r19', lexileMin: 990, lexileMax: 1130, topic: 'science', subject: 'Environment',
+    title: 'Nuclear Energy: Clean or Dangerous?', source: 'Energy.gov',
+    summary: 'Nuclear power produces no carbon emissions, but what about safety and waste? Scientists and policymakers disagree sharply.',
+    url: 'https://www.energy.gov/ne/articles/nuclear-power-most-reliable-energy-source-and-its-not-even-close',
+    skills: ['argument_strength', 'evidence'] },
+  { id: 'r20', lexileMin: 1000, lexileMax: 1150, topic: 'social studies', subject: 'Philosophy',
+    title: 'What Is Justice?', source: 'Stanford Encyclopedia of Philosophy (adapted)',
+    summary: 'From Plato to Rawls, philosophers have debated what it means for a society to be truly just. Here are the major theories.',
+    url: 'https://plato.stanford.edu/entries/justice/',
+    skills: ['argument_strength', 'vocabulary', 'organization'] },
+
+  // ── HIGH (1100L+) ──
+  { id: 'r21', lexileMin: 1100, lexileMax: 1400, topic: 'science', subject: 'Neuroscience',
+    title: 'How the Brain Forms Memories', source: 'Scientific American',
+    summary: 'Memory isn't stored like a file on a hard drive. Neuroscientists have discovered that every time we recall something, we subtly change it.',
+    url: 'https://www.scientificamerican.com/article/how-our-brains-make-memories/',
+    skills: ['vocabulary', 'evidence'] },
+  { id: 'r22', lexileMin: 1100, lexileMax: 1400, topic: 'social studies', subject: 'Economics',
+    title: 'The Rise of Inequality', source: 'The Atlantic',
+    summary: 'The gap between rich and poor has grown dramatically over the last four decades. Economists debate why — and what, if anything, should be done.',
+    url: 'https://www.theatlantic.com/magazine/archive/2021/01/inequality-money-economy-future/617262/',
+    skills: ['argument_strength', 'evidence', 'organization'] },
+  { id: 'r23', lexileMin: 1120, lexileMax: 1400, topic: 'science', subject: 'Physics',
+    title: 'What Is Dark Matter?', source: 'CERN',
+    summary: 'About 27% of the universe is made of dark matter — but no one has ever seen it. Physicists explain what they know and how they know it.',
+    url: 'https://home.cern/science/physics/dark-matter',
+    skills: ['vocabulary', 'evidence'] },
+  { id: 'r24', lexileMin: 1130, lexileMax: 1400, topic: 'social studies', subject: 'History',
+    title: 'The Long Shadow of Colonialism', source: 'Foreign Affairs',
+    summary: 'European colonial rule ended decades ago, but its economic and political effects persist in profound ways across Africa, Asia, and Latin America.',
+    url: 'https://www.foreignaffairs.com/articles/2020-09-01/enduring-effects-colonialism',
+    skills: ['argument_strength', 'organization', 'evidence'] },
+];
+
+// Assign readings based on student Lexile — give 3 at their level, 1 stretch above
+function assignReadings(lexile, scores) {
+  const stretch = Math.min(lexile + 150, 1400);
+  
+  // Find weak skill areas to prioritize matching articles
+  const weakSkills = Object.entries(scores || {})
+    .sort((a, b) => a[1] - b[1])
+    .slice(0, 2)
+    .map(([skill]) => skill);
+
+  // Filter articles in range
+  const inRange = READING_LIBRARY.filter(r => r.lexileMin <= lexile && r.lexileMax >= lexile - 50);
+  const stretchRange = READING_LIBRARY.filter(r => r.lexileMin <= stretch && r.lexileMax >= lexile + 50 && r.lexileMin > lexile);
+
+  // Sort: prioritize articles that target weak skills
+  const score = (article) => article.skills.filter(s => weakSkills.includes(s)).length;
+  inRange.sort((a, b) => score(b) - score(a));
+  stretchRange.sort((a, b) => score(b) - score(a));
+
+  // Pick 3 at level + 1 stretch (avoid duplicates from previously read)
+  const readIds = new Set((STATE.readings || []).filter(r => r.read).map(r => r.id));
+  const pick = (pool, n) => pool.filter(r => !readIds.has(r.id)).slice(0, n);
+
+  const selected = [
+    ...pick(inRange, 3),
+    ...pick(stretchRange, 1),
+  ];
+
+  // If not enough at level, fill with nearby
+  if (selected.length < 3) {
+    const nearby = READING_LIBRARY.filter(r => !readIds.has(r.id) && !selected.find(s => s.id === r.id))
+      .sort((a, b) => Math.abs(a.lexileMin - lexile) - Math.abs(b.lexileMin - lexile));
+    selected.push(...nearby.slice(0, 4 - selected.length));
+  }
+
+  return selected.map(r => ({
+    ...r,
+    assignedAt: new Date().toISOString(),
+    read: false,
+    readAt: null,
+    isStretch: r.lexileMin > lexile,
+  }));
+}
+
+// ── TAB: READINGS ──
+function renderTabReadings(container) {
+  const lexile = STATE.studentLexile;
+  const readings = STATE.readings || [];
+  const unread = readings.filter(r => !r.read);
+  const completed = readings.filter(r => r.read);
+
+  if (!lexile) {
+    container.innerHTML = `
+      <h1 class="page-title">📖 Leveled Readings</h1>
+      <p class="page-sub">Articles matched to your reading level will appear here after you submit writing.</p>
+      <div class="empty-state">
+        <div class="empty-icon">📚</div>
+        <div class="empty-title">No readings assigned yet</div>
+        <p>Submit your first essay and WriteLift will estimate your reading level and assign articles matched to your skill.</p>
+        <button class="btn btn-primary" style="margin-top:16px" onclick="switchStudentTab('write')">✍️ Submit Writing to Get Readings</button>
+      </div>`;
+    return;
+  }
+
+  const band = lexileBand(lexile);
+
+  container.innerHTML = `
+    <h1 class="page-title">📖 Leveled Readings</h1>
+    <p class="page-sub">Articles chosen for your reading level — designed to strengthen your writing skills.</p>
+
+    <div class="lexile-banner">
+      <div class="lexile-left">
+        <div class="lexile-badge" style="background:${band.color}20;border-color:${band.color}40;color:${band.color}">${lexile}L</div>
+        <div>
+          <div class="lexile-label">Your Estimated Lexile Level</div>
+          <div class="lexile-sub">${band.label} · ${band.grade} · Updates with each submission</div>
+        </div>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="switchStudentTab('write')">✍️ Submit to Update</button>
+    </div>
+
+    <div class="readings-legend">
+      <span class="legend-item"><span class="legend-dot" style="background:var(--sky)"></span> At your level</span>
+      <span class="legend-item"><span class="legend-dot" style="background:var(--amber)"></span> Stretch challenge</span>
+      <span class="legend-item"><span class="legend-dot" style="background:var(--emerald)"></span> Completed</span>
+    </div>
+
+    ${unread.length ? `
+    <div class="readings-section-title">Assigned Readings (${unread.length})</div>
+    <div class="readings-grid">
+      ${unread.map(r => renderReadingCard(r)).join('')}
+    </div>` : `
+    <div style="background:rgba(46,204,138,0.08);border:1px solid rgba(46,204,138,0.2);border-radius:12px;padding:20px;text-align:center;margin-bottom:24px">
+      <div style="font-size:1.5rem;margin-bottom:6px">🎉</div>
+      <div style="font-weight:700;color:var(--navy)">All caught up!</div>
+      <div style="font-size:0.875rem;color:#6B8299;margin-top:4px">Submit more writing to get new readings assigned.</div>
+    </div>`}
+
+    ${completed.length ? `
+    <div class="readings-section-title" style="margin-top:24px;color:#6B8299">Completed (${completed.length})</div>
+    <div class="readings-grid">
+      ${completed.map(r => renderReadingCard(r)).join('')}
+    </div>` : ''}`;
+}
+
+function renderReadingCard(r) {
+  const band = lexileBand(r.lexileMin);
+  const accentColor = r.read ? 'var(--emerald)' : r.isStretch ? 'var(--amber)' : 'var(--sky)';
+  const tag = r.read ? 'Completed ✓' : r.isStretch ? '🔥 Stretch' : '📖 At Your Level';
+
+  return `
+  <div class="reading-card ${r.read ? 'reading-done' : ''}">
+    <div class="rc-accent" style="background:${accentColor}"></div>
+    <div class="rc-body">
+      <div class="rc-top">
+        <span class="rc-tag" style="background:${accentColor}20;color:${accentColor};border-color:${accentColor}30">${tag}</span>
+        <span class="rc-lexile">${r.lexileMin}–${r.lexileMax}L</span>
+      </div>
+      <div class="rc-subject">${r.subject} · ${r.source}</div>
+      <div class="rc-title">${r.title}</div>
+      <div class="rc-summary">${r.summary}</div>
+      <div class="rc-skills">
+        Builds: ${r.skills.map(s => `<span class="rc-skill-chip">${SKILL_LABELS[s] || s}</span>`).join('')}
+      </div>
+      <div class="rc-footer">
+        ${r.read
+          ? `<span style="color:var(--emerald);font-size:0.8rem;font-weight:600">✓ Read on ${new Date(r.readAt).toLocaleDateString()}</span>`
+          : `<button class="btn btn-primary btn-sm" onclick="openReading('${r.id}')">Read Article →</button>`}
+        <a href="${r.url}" target="_blank" rel="noopener" class="rc-source-link">Open source ↗</a>
+      </div>
+    </div>
+  </div>`;
+}
+
+function openReading(id) {
+  const r = STATE.readings.find(x => x.id === id);
+  if (!r) return;
+  // Open the article in a new tab
+  window.open(r.url, '_blank', 'noopener');
+  // Mark as read after a short delay (gives them time to open it)
+  setTimeout(() => {
+    const idx = STATE.readings.findIndex(x => x.id === id);
+    if (idx >= 0) {
+      STATE.readings[idx] = { ...STATE.readings[idx], read: true, readAt: new Date().toISOString() };
+      saveData();
+      renderStudentDashboard();
+      showToast('📖 Reading marked as complete!');
+    }
+  }, 2000);
 }
 
 // ══════════════════════════════════════════
