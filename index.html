@@ -1391,22 +1391,24 @@ function renderTabDashboard() {
     </div>` : ''}
     <div style="text-align:center;margin-top:12px">
       <button class="btn btn-primary" onclick="switchStudentTab('write')">✍️ Submit New Writing</button>
-      ${STATE.studentLexile ? `<button class="btn btn-secondary" style="margin-left:10px" onclick="switchStudentTab('readings')">📖 View Readings (${(STATE.readings||[]).filter(r=>!r.read).length} new)</button>` : ''}
     </div>
-    ${STATE.studentLexile ? (() => {
-      const band = lexileBand(STATE.studentLexile);
-      return \`<div class="panel" style="margin-top:16px;border-left:4px solid \${band.color}">
-        <div class="panel-title">📖 Your Reading Level</div>
-        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-          <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:\${band.color}">\${STATE.studentLexile}L</div>
-          <div>
-            <div style="font-weight:700;font-size:0.9rem">\${band.label}</div>
-            <div style="font-size:0.78rem;color:#6B8299">\${(STATE.readings||[]).filter(r=>!r.read).length} articles assigned at your level</div>
-          </div>
-          <button class="btn btn-secondary btn-sm" onclick="switchStudentTab('readings')" style="margin-left:auto">View Readings →</button>
-        </div>
-      </div>\`;
-    })() : ''}`;
+    ${renderLexileCard()}`;
+}
+
+function renderLexileCard() {
+  if (!STATE.studentLexile) return '';
+  const band = lexileBand(STATE.studentLexile);
+  const unread = (STATE.readings || []).filter(r => !r.read).length;
+  return '<div class="panel" style="margin-top:16px;border-left:4px solid ' + band.color + '">'
+    + '<div class="panel-title">📖 Your Reading Level</div>'
+    + '<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">'
+    + '<div style="font-family:Playfair Display,serif;font-size:2rem;font-weight:900;color:' + band.color + '">' + STATE.studentLexile + 'L</div>'
+    + '<div>'
+    + '<div style="font-weight:700;font-size:0.9rem">' + band.label + '</div>'
+    + '<div style="font-size:0.78rem;color:#6B8299">' + unread + ' article' + (unread !== 1 ? 's' : '') + ' assigned at your level</div>'
+    + '</div>'
+    + '<button class="btn btn-secondary btn-sm" onclick="switchStudentTab('readings')" style="margin-left:auto">📖 View Readings (' + unread + ') →</button>'
+    + '</div></div>';
 }
 
 // ── TAB: WRITE ──
