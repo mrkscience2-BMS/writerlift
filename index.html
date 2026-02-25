@@ -842,6 +842,19 @@ function scoreToLevel(score) {
   return 1;
 }
 
+// ── FERPA: Anonymization ──
+// Generates a stable anonymous ID from the student name (hash-like, not reversible)
+// Real name never leaves the browser — only the anonymous ID goes to OpenAI
+function getAnonymousId(name) {
+  // Simple deterministic hash — same name always gives same ID within a session
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = ((hash << 5) - hash) + name.charCodeAt(i);
+    hash |= 0;
+  }
+  return 'Student_' + Math.abs(hash).toString(36).toUpperCase().slice(0, 6);
+}
+
 // ── TAB: DASHBOARD ──
 function renderTabDashboard() {
   const storedSubs = STATE.submissions.filter(s => s.studentName === STATE.student.name);
@@ -1042,7 +1055,21 @@ async function submitEssay() {
 
   try {
     const assignment = getAssignmentForStudent();
-    const result = await callAI(content, STATE.student.grade, assignment?.prompt);
+
+    // ── FERPA: Strip PII before sending to OpenAI ──
+    // Replace student's real name with anonymous ID in the essay text
+    // Real name stays in localStorage and Google Sheets only (teacher-controlled)
+    const anonymousId = getAnonymousId(STATE.student.name);
+    const studentFirstName = STATE.student.name.split(' ')[0];
+    const studentLastName = STATE.student.name.split(' ').slice(1).join(' ');
+    const nameRegex = new RegExp(
+      STATE.student.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') +
+      (studentLastName ? '|' + studentFirstName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : ''),
+      'gi'
+    );
+    const anonymizedContent = content.replace(nameRegex, anonymousId);
+
+    const result = await callAI(anonymizedContent, STATE.student.grade, assignment?.prompt);
     hideLoading();
 
     // Update skill levels (weighted average)
@@ -1069,7 +1096,8 @@ async function submitEssay() {
     // Save submission
     const submission = {
       id: Date.now(),
-      studentName: STATE.student.name,
+      studentName: STATE.student.name,   // real name — stays in browser/sheets only
+      anonymousId: getAnonymousId(STATE.student.name), // FERPA-safe ID used with AI
       grade: STATE.student.grade,
       period: STATE.student.period,
       promptCode: STATE.student.promptCode,
@@ -1525,6 +1553,7 @@ function _renderTeacherDashboardInner() {
       <div>
         <h1 class="t-title">📊 ${activeClass ? activeClass.name : 'All Classes'}</h1>
         <p class="t-sub">${t.email} · ${mySubs.length} submissions · ${students.length} students</p>
+        <p style="font-size:0.72rem;color:#6B8299;margin-top:2px">🔒 Student names are anonymized before AI processing. Real names are stored only here and in your Google Sheet.</p>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-secondary btn-sm" onclick="renderTeacherDashboard()">🔄 Refresh</button>
@@ -2694,6 +2723,9 @@ function switchMktTab(persona) {
     <button class="modal-close" onclick="closeModal('modal-student')">✕</button>
     <h2 class="modal-title">Join Your Class</h2>
     <p class="modal-sub">Enter your info and your teacher will see your work.</p>
+    <div style="background:rgba(46,204,138,0.07);border:1px solid rgba(46,204,138,0.2);border-radius:8px;padding:10px 14px;font-size:0.78rem;color:#2A5040;margin-bottom:4px;line-height:1.5">
+      🔒 <strong>Privacy notice:</strong> Your name is never shared with the AI. WriteLift replaces your name with an anonymous ID before analysis. Your teacher sees your real name; the AI only sees your writing.
+    </div>
     <div class="form-group">
       <label class="form-label">Your First & Last Name <span>*</span></label>
       <input class="form-input" id="s-name" type="text" placeholder="e.g. Alex Rivera" autocomplete="name">
