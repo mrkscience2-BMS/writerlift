@@ -673,6 +673,24 @@ function loadData() {
       saveData();
       console.log('WriteLift: migration complete, data saved to', STORAGE_KEY);
     }
+
+    // Backfill classId on all submissions that have a matching promptCode but no classId.
+    // Runs on every load so code-only submissions get linked as soon as the teacher opens the dashboard.
+    let backfillChanged = false;
+    STATE.classes.forEach(cls => {
+      if (!cls.code) return;
+      STATE.submissions.forEach(s => {
+        if (!s.classId && s.promptCode &&
+            s.promptCode.toUpperCase() === cls.code.toUpperCase()) {
+          s.classId = cls.id;
+          backfillChanged = true;
+        }
+      });
+    });
+    if (backfillChanged) {
+      saveData();
+      console.log('WriteLift: backfilled classId on', STATE.submissions.filter(s => s.classId).length, 'submissions');
+    }
   } catch(e) { console.warn('loadData error:', e); }
 }
 loadData();
@@ -2084,6 +2102,18 @@ function getActiveClass() {
 function getFilteredSubs() {
   const activeClass = getActiveClass();
   if (activeClass) {
+    // Backfill classId on any submissions that have a matching promptCode but no classId.
+    // This fixes submissions made by students before the teacher's class was loaded locally.
+    let changed = false;
+    STATE.submissions.forEach(s => {
+      if (!s.classId && s.promptCode && activeClass.code &&
+          s.promptCode.toUpperCase() === activeClass.code.toUpperCase()) {
+        s.classId = activeClass.id;
+        changed = true;
+      }
+    });
+    if (changed) saveData();
+
     return STATE.submissions.filter(s => {
       const byClassId = s.classId && s.classId === activeClass.id;
       const byCode = activeClass.code && s.promptCode &&
@@ -2138,7 +2168,7 @@ function _renderTeacherDashboardInner() {
         📚 All Classes <span style="opacity:0.6;font-size:0.72rem">(${STATE.submissions.length})</span>
       </button>
       ${STATE.classes.map(cls => {
-        const clsSubs = STATE.submissions.filter(s => s.classId === cls.id || s.promptCode === cls.code);
+        const clsSubs = STATE.submissions.filter(s => s.classId === cls.id || (s.promptCode && cls.code && s.promptCode.toUpperCase() === cls.code.toUpperCase()));
         return `<button class="class-pill ${STATE.activeClassId === cls.id ? 'active' : ''}" onclick="setActiveClass('${cls.id}')">
           <span class="class-pill-dot" style="background:${cls.color}"></span>
           ${cls.name} <span style="opacity:0.6;font-size:0.72rem">(${clsSubs.length})</span>
@@ -2197,7 +2227,7 @@ function _renderTeacherDashboardInner() {
               const skills = last?.scores || {};
               const isAlert = (last?.overallLevel||1) <= 2;
               const isMLL = last?.isMLL;
-              const studentClass = STATE.classes.find(c => c.id === last?.classId || c.code === last?.promptCode);
+              const studentClass = STATE.classes.find(c => c.id === last?.classId || (c.code && last?.promptCode && c.code.toUpperCase() === last.promptCode.toUpperCase()));
               return `<tr class="${isAlert ? 'alert-row' : ''}">
                 <td>
                   <div class="sl-name">${name}${isAlert ? ' ⚠️' : ''}${isMLL ? ' 🌐' : ''}</div>
@@ -2271,7 +2301,7 @@ function renderManageTab() {
     ${STATE.classes.length ? `
     <div class="manage-grid">
       ${STATE.classes.map(cls => {
-        const clsSubs = STATE.submissions.filter(s => s.classId === cls.id || s.promptCode === cls.code);
+        const clsSubs = STATE.submissions.filter(s => s.classId === cls.id || (s.promptCode && cls.code && s.promptCode.toUpperCase() === cls.code.toUpperCase()));
         const clsStudents = [...new Set(clsSubs.map(s => s.studentName))];
         return `
         <div class="class-manage-card">
@@ -2304,7 +2334,7 @@ function renderManageTab() {
       ${allStudents.map(name => {
         const subs = STATE.submissions.filter(s => s.studentName === name);
         const last = subs[subs.length-1];
-        const cls = STATE.classes.find(c => c.id === last?.classId || c.code === last?.promptCode);
+        const cls = STATE.classes.find(c => c.id === last?.classId || (c.code && last?.promptCode && c.code.toUpperCase() === last.promptCode.toUpperCase()));
         return `
         <div class="student-manage-row">
           <div>
