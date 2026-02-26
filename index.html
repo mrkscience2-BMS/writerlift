@@ -180,7 +180,27 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--navy);
 .ex-instructions{font-size:0.85rem;color:#6B8299;line-height:1.6;margin-bottom:14px}
 .ex-response{width:100%;min-height:100px;padding:12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.9rem;resize:vertical;outline:none;transition:border-color 0.2s}
 .ex-response:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(244,165,54,0.1)}
-.ex-feedback{background:rgba(46,204,138,0.08);border:1px solid rgba(46,204,138,0.2);border-radius:8px;padding:12px 14px;font-size:0.85rem;color:#2A5440;line-height:1.6;margin-top:10px}
+.ex-feedback{background:rgba(46,204,138,0.06);border:1px solid rgba(46,204,138,0.2);border-radius:10px;padding:14px 16px;font-size:0.875rem;color:#2A5440;line-height:1.6;margin-top:12px}
+.fb-overall{font-size:0.9rem;color:#1a4a30;font-weight:500;line-height:1.65;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid rgba(46,204,138,0.15)}
+.fb-strengths{margin-bottom:10px}
+.fb-strength-item{display:flex;align-items:flex-start;gap:6px;font-size:0.82rem;color:#2A5440;line-height:1.55;margin-bottom:4px}
+.fb-corrections{margin-bottom:10px}
+.fb-correction-block{background:rgba(232,93,117,0.05);border:1px solid rgba(232,93,117,0.18);border-radius:8px;padding:10px 12px;margin-bottom:8px}
+.fb-original{font-size:0.8rem;color:#8B2335;margin-bottom:4px}
+.fb-original del{background:rgba(232,93,117,0.12);padding:1px 3px;border-radius:3px;text-decoration:line-through}
+.fb-corrected{font-size:0.85rem;color:#1a4a30;font-weight:600;margin-bottom:4px}
+.fb-corrected mark{background:rgba(46,204,138,0.2);padding:1px 4px;border-radius:3px;font-weight:700}
+.fb-explanation{font-size:0.76rem;color:#6B8299;font-style:italic;line-height:1.5}
+.fb-revised{background:rgba(91,164,207,0.06);border:1px solid rgba(91,164,207,0.2);border-radius:8px;padding:10px 14px;margin-bottom:10px}
+.fb-revised-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--sky);margin-bottom:6px}
+.fb-revised-text{font-size:0.875rem;color:var(--navy);line-height:1.7;font-style:italic}
+.fb-section-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#6B8299;margin:12px 0 6px}
+.fb-tip{background:rgba(244,165,54,0.07);border:1px solid rgba(244,165,54,0.2);border-radius:8px;padding:9px 12px;font-size:0.82rem;color:#7A5A10;line-height:1.55}
+.fb-frame-block{background:var(--white);border:1.5px solid rgba(46,204,138,0.2);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.fb-frame-student{font-size:0.82rem;color:#6B8299;margin-bottom:6px}
+.fb-frame-correction{font-size:0.875rem;font-weight:600;color:#1a4a30;margin-bottom:4px}
+.fb-frame-explanation{font-size:0.76rem;color:#6B8299;font-style:italic}
+.fb-takeaway{background:rgba(129,140,248,0.07);border:1px solid rgba(129,140,248,0.2);border-radius:8px;padding:9px 12px;font-size:0.82rem;color:#4338CA;line-height:1.55;margin-top:8px}
 .ex-example{background:var(--cream);border-radius:8px;padding:10px 12px;font-size:0.82rem;color:#6B8299;line-height:1.55;margin-top:8px;border-left:3px solid var(--amber)}
 .ex-example strong{color:var(--navy);font-size:0.75rem;display:block;margin-bottom:3px}
 
@@ -1244,14 +1264,125 @@ async function generateExercises(microSkills, overallLevel, scores, isMLL, writi
 }
 
 // ── RENDER MLL EXERCISE CARD ──
+// ── FEEDBACK RENDERING HELPERS ──
+function renderStructuredFeedback(fb) {
+  // fb can be a parsed JSON object (new) or a plain string (legacy)
+  if (!fb) return '';
+  if (typeof fb === 'string') {
+    return '<div class="ex-feedback"><div class="fb-overall">✅ ' + fb + '</div></div>';
+  }
+
+  let html = '<div class="ex-feedback">';
+
+  // Overall praise
+  if (fb.overall) {
+    html += '<div class="fb-overall">✅ ' + fb.overall + '</div>';
+  }
+
+  // Strengths
+  if (fb.strengths && fb.strengths.length) {
+    html += '<div class="fb-section-label">What you did well</div>';
+    html += '<div class="fb-strengths">';
+    fb.strengths.forEach(s => {
+      html += '<div class="fb-strength-item">⭐ ' + s + '</div>';
+    });
+    html += '</div>';
+  }
+
+  // Corrections
+  if (fb.corrections && fb.corrections.length) {
+    html += '<div class="fb-section-label" style="color:#C0334A">Corrections</div>';
+    html += '<div class="fb-corrections">';
+    fb.corrections.forEach(c => {
+      html += '<div class="fb-correction-block">'
+        + '<div class="fb-original">✗ <del>' + c.original + '</del></div>'
+        + '<div class="fb-corrected">✓ ' + c.corrected + '</div>'
+        + (c.explanation ? '<div class="fb-explanation">' + c.explanation + '</div>' : '')
+        + '</div>';
+    });
+    html += '</div>';
+  }
+
+  // Revised version (standard exercises only)
+  if (fb.revised_version) {
+    html += '<div class="fb-revised">'
+      + '<div class="fb-revised-label">📝 Revised version</div>'
+      + '<div class="fb-revised-text">' + fb.revised_version + '</div>'
+      + '</div>';
+  }
+
+  // Tip
+  const tip = fb.one_tip || fb.one_takeaway;
+  if (tip) {
+    html += '<div class="fb-tip">💡 <strong>Remember:</strong> ' + tip + '</div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+function renderMLLFeedback(fb, frames) {
+  // fb is the parsed JSON from MLL feedback, frames is ex.frames
+  if (!fb) return '';
+  if (typeof fb === 'string') {
+    return '<div class="ex-feedback"><div class="fb-overall">✅ ' + fb + '</div></div>';
+  }
+
+  let html = '<div class="ex-feedback">';
+
+  if (fb.overall) {
+    html += '<div class="fb-overall">✅ ' + fb.overall + '</div>';
+  }
+
+  // Per-frame corrections
+  if (fb.frames && fb.frames.length) {
+    html += '<div class="fb-section-label">Your sentence frames</div>';
+    fb.frames.forEach((frameFb, fi) => {
+      const modelAnswer = frames && frames[fi] ? frames[fi].example_completion : '';
+      const needsCorrection = frameFb.correction && frameFb.correction.needed;
+      html += '<div class="fb-frame-block">'
+        + '<div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6B8299;margin-bottom:6px">Frame ' + (fi + 1) + '</div>';
+
+      // What student wrote
+      if (frameFb.student_wrote) {
+        html += '<div class="fb-frame-student">You wrote: <em>"' + frameFb.student_wrote + '"</em></div>';
+      }
+
+      if (needsCorrection) {
+        html += '<div class="fb-original" style="margin-bottom:4px">✗ Needs a small fix</div>'
+          + '<div class="fb-corrected">✓ ' + frameFb.correction.corrected_sentence + '</div>'
+          + (frameFb.correction.explanation ? '<div class="fb-explanation">' + frameFb.correction.explanation + '</div>' : '');
+      } else if (frameFb.what_worked) {
+        html += '<div class="fb-strength-item">⭐ ' + frameFb.what_worked + '</div>';
+      } else {
+        html += '<div class="fb-strength-item">⭐ Good job!</div>';
+      }
+
+      // Always show model answer for reference
+      if (modelAnswer) {
+        html += '<div style="margin-top:8px;font-size:0.76rem;color:#6B8299;padding-top:6px;border-top:1px solid var(--border)">Model answer: <em>' + modelAnswer + '</em></div>';
+      }
+
+      html += '</div>';
+    });
+  }
+
+  // Takeaway
+  if (fb.one_takeaway) {
+    html += '<div class="fb-takeaway">💡 <strong>Remember:</strong> ' + fb.one_takeaway + '</div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
 function renderMLLExerciseCard(ex, i) {
   const frames = ex.frames || [];
   const framesHtml = frames.map((frame, fi) => {
     return '<div class="mll-frame-block">'
       + '<div class="mll-frame-stem">' + frame.stem + '</div>'
       + (frame.hint ? '<div class="mll-frame-hint">' + frame.hint + '</div>' : '')
-      + '<input class="mll-frame-input" id="mll-input-' + i + '-' + fi + '" placeholder="Write your answer here..." />'
-      + (ex.feedback ? '<div class="mll-frame-example">Model: <em>' + frame.example_completion + '</em></div>' : '')
+      + (ex.feedback && ex.student_responses && ex.student_responses[fi] != null ? '<div style="background:var(--cream);border-radius:6px;padding:8px 10px;font-size:0.82rem;margin-top:4px">Your answer: <em>"' + ex.student_responses[fi] + '"</em></div>' : '<input class="mll-frame-input" id="mll-input-' + i + '-' + fi + '" placeholder="Write your answer here..." />')
       + '</div>';
   }).join('');
 
@@ -1265,7 +1396,7 @@ function renderMLLExerciseCard(ex, i) {
     + framesHtml
     + (ex.connection_to_writing ? '<div class="mll-connection">✨ ' + ex.connection_to_writing + '</div>' : '')
     + (ex.feedback
-        ? '<div class="ex-feedback">✅ ' + ex.feedback + '</div>'
+        ? renderMLLFeedback(ex.feedback, ex.frames)
         : '<button class="btn btn-primary btn-sm" style="margin-top:14px" onclick="submitMLLExercise(' + i + ')">Check My Answers →</button>')
     + '</div>';
 }
@@ -1291,20 +1422,26 @@ async function submitMLLExercise(index) {
       'Frame: "' + frame.stem + '"\nStudent wrote: "' + responses[fi] + '"\nModel answer: "' + frame.example_completion + '"'
     ).join('\n\n');
 
+    const mllFbPrompt = 'Skill being practiced: "' + ex.skill_area + '".\n\nEach frame below shows what the student wrote and the model answer.\n\n' + framesText
+      + '\n\nRespond ONLY with this JSON:\n'
+      + '{"overall":"1-2 warm encouraging sentences about their effort","frames":[{"frame_num":1,"student_wrote":"exact student answer","what_worked":"specific praise or null","correction":{"needed":true/false,"corrected_sentence":"full corrected sentence with their blank filled in correctly","explanation":"short simple explanation of what to fix"}},{"frame_num":2,...},{"frame_num":3,...}],"one_takeaway":"one short simple rule to remember"}';
+
     const fbResp = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
       body: JSON.stringify({
         model: 'gpt-4o',
-        max_tokens: 350,
+        max_tokens: 700,
+        response_format: { type: 'json_object' },
         messages: [
-          { role: 'system', content: 'You are a warm, encouraging ESL writing coach. Give 2-3 sentences of gentle, specific feedback on sentence frame completions. Celebrate what the student did well. Point out one small improvement using very simple English. Never make them feel bad for errors — frame everything as a learning step.' },
-          { role: 'user', content: 'Skill: "' + ex.skill_area + '".\n\nStudent responses:\n' + framesText + '\n\nGive brief, warm, specific feedback:' }
+          { role: 'system', content: 'You are a warm, encouraging ESL/ELL writing coach. Evaluate each sentence frame completion honestly but kindly. If the student made a grammar, word choice, or usage error, always provide the corrected full sentence so they can see exactly what it should look like. Use very simple English in all explanations. Respond ONLY with valid JSON.' },
+          { role: 'user', content: mllFbPrompt }
         ]
       })
     });
     const d = await fbResp.json();
-    ex.feedback = d.choices[0].message.content;
+    const parsedFb = JSON.parse(d.choices[0].message.content);
+    ex.feedback = parsedFb;
     ex.completed = true;
     ex.student_responses = responses;
     const lastSub = STATE.submissions.filter(s => s.studentName === STATE.student.name).pop();
@@ -1312,6 +1449,8 @@ async function submitMLLExercise(index) {
     hideLoading();
     switchStudentTab('exercises');
     showToast('Great work! Check your feedback below.');
+    // Auto-generate next exercise
+    generateNextExercise();
   } catch(e) {
     hideLoading();
     showToast('Could not get feedback. Try again.', true);
@@ -1328,19 +1467,25 @@ async function submitExercise(index) {
   try {
     const apiKey = HARDCODED_API_KEY || STATE.teacher?.apiKey || localStorage.getItem('writelift_openai_key');
     if (!apiKey) { hideLoading(); return showToast('No API key configured.', true); }
+    const stdFbPrompt = 'Exercise skill: "' + ex.skill_area + '"\nPrompt given: "' + ex.prompt + '"\nStudent response: "' + resp + '"\nModel answer: "' + ex.example_response + '"'
+      + '\n\nRespond ONLY with this JSON:\n'
+      + '{"overall":"1-2 warm encouraging sentences","strengths":["specific thing they did well"],"corrections":[{"original":"exact phrase or sentence from student response that needs fixing","corrected":"the improved version","explanation":"brief reason — what rule or technique applies"}],"revised_version":"the student response rewritten with all corrections applied, keeping their voice","one_tip":"one specific actionable writing tip for this skill"}';
+
     const fbResp = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
       body: JSON.stringify({
-        model: 'gpt-4o', max_tokens: 300,
+        model: 'gpt-4o', max_tokens: 700,
+        response_format: { type: 'json_object' },
         messages: [
-          { role: 'system', content: 'You are a supportive K-12 writing coach. Give brief, specific, encouraging feedback in 2-3 sentences.' },
-          { role: 'user', content: 'Exercise on "' + ex.skill_area + '". Prompt: "' + ex.prompt + '". Student: "' + resp + '". Model: "' + ex.example_response + '". Feedback:' }
+          { role: 'system', content: 'You are a supportive K-12 writing coach. Evaluate the student response against the exercise prompt and the model answer. Identify specific grammar, structure, or skill errors and always show a corrected version. Keep corrections specific and kind — show exactly what the improved sentence looks like. Respond ONLY with valid JSON.' },
+          { role: 'user', content: stdFbPrompt }
         ]
       })
     });
     const d = await fbResp.json();
-    ex.feedback = d.choices[0].message.content;
+    const parsedFb = JSON.parse(d.choices[0].message.content);
+    ex.feedback = parsedFb;
     ex.completed = true;
     ex.student_response = resp;
     const lastSub = STATE.submissions.filter(s => s.studentName === STATE.student.name).pop();
@@ -1348,7 +1493,129 @@ async function submitExercise(index) {
     hideLoading();
     switchStudentTab('exercises');
     showToast('Great work! Feedback added.');
+    // Auto-generate next exercise
+    generateNextExercise();
   } catch(e) { hideLoading(); showToast('Could not get feedback. Try again.', true); }
+}
+
+// ── START PRACTICE WITHOUT A SUBMISSION ──
+async function startPracticeFromScratch() {
+  const apiKey = HARDCODED_API_KEY || STATE.teacher?.apiKey || localStorage.getItem('writelift_openai_key');
+  if (!apiKey) return showToast('No API key configured. Ask your teacher.', true);
+
+  // Use current skill levels as the score map (scale 1–5 → 0–100)
+  const scoreMap = {};
+  Object.entries(STATE.skills).forEach(([sk, lv]) => { scoreMap[sk] = lv * 20; });
+
+  const lastSub = STATE.submissions.filter(s => s.studentName === STATE.student?.name).pop();
+  const isMLL = lastSub?.isMLL || false;
+
+  // Pick the weakest skill that hasn't already been recently targeted
+  const recentSkills = new Set(STATE.exercises.slice(-3).map(e => e.skill_area));
+  const allSkills = ['organization','evidence','grammar','sentence_variety','vocabulary','argument_strength'];
+  const target = allSkills
+    .filter(sk => !recentSkills.has(sk))
+    .sort((a,b) => scoreMap[a] - scoreMap[b])[0] || allSkills.sort((a,b) => scoreMap[a] - scoreMap[b])[0];
+
+  showLoading('Building your exercise…');
+  try {
+    const newExercises = await generateExercises(
+      [target], calcOverallLevel(), scoreMap, isMLL,
+      lastSub?.content?.substring(0,400) || ''
+    );
+    if (newExercises.length) {
+      STATE.exercises.push(...newExercises);
+      const lastSub2 = STATE.submissions.filter(s => s.studentName === STATE.student?.name).pop();
+      if (lastSub2) { lastSub2.exercises = STATE.exercises; saveData(); }
+      const newPending = STATE.exercises.filter(e => !e.completed).length;
+      const badge = document.getElementById('ex-badge');
+      if (badge) { badge.textContent = newPending; badge.style.display = 'inline'; }
+    }
+    hideLoading();
+    switchStudentTab('exercises');
+  } catch(e) {
+    hideLoading();
+    showToast('Could not generate exercise. Try again.', true);
+  }
+}
+
+// ── AUTO-GENERATE NEXT EXERCISE ──
+async function generateNextExercise() {
+  // Don't stack up more than 2 pending exercises at a time
+  const pending = STATE.exercises.filter(e => !e.completed);
+  if (pending.length >= 2) return;
+
+  const apiKey = HARDCODED_API_KEY || STATE.teacher?.apiKey || localStorage.getItem('writelift_openai_key');
+  if (!apiKey) return;
+
+  // Determine MLL status from most recent submission
+  const lastSub = STATE.submissions.filter(s => s.studentName === STATE.student?.name).pop();
+  const isMLL = lastSub?.isMLL || false;
+  const scores = lastSub?.scores || STATE.skills;
+
+  // Rotate through all skills round-robin so the student doesn't always get the same one
+  // Track how many exercises each skill has had
+  const allSkills = ['organization','evidence','grammar','sentence_variety','vocabulary','argument_strength'];
+  const exerciseCounts = {};
+  allSkills.forEach(sk => {
+    exerciseCounts[sk] = STATE.exercises.filter(e => e.skill_area === sk).length;
+  });
+
+  // Sort: fewest exercises first, then by lowest score (most needs work)
+  const scoreMap = {};
+  allSkills.forEach(sk => {
+    const rawScore = scores[sk];
+    // scores could be 0-100 (from submission) or 1-5 (skill levels in STATE.skills)
+    scoreMap[sk] = rawScore != null ? (rawScore > 5 ? rawScore : rawScore * 20) : 50;
+  });
+
+  const sortedSkills = [...allSkills].sort((a, b) => {
+    const countDiff = exerciseCounts[a] - exerciseCounts[b];
+    if (countDiff !== 0) return countDiff;
+    return scoreMap[a] - scoreMap[b]; // lower score = higher priority
+  });
+
+  // Pick the top skill, skipping any already in pending
+  const pendingSkills = new Set(pending.map(e => e.skill_area));
+  const targetSkill = sortedSkills.find(sk => !pendingSkills.has(sk)) || sortedSkills[0];
+
+  // Show a subtle "loading next exercise" indicator
+  const exTab = document.getElementById('student-main-content');
+  const indicator = document.createElement('div');
+  indicator.id = 'next-ex-indicator';
+  indicator.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:10px 18px;border-radius:100px;font-size:0.8rem;font-weight:600;z-index:9000;box-shadow:0 4px 16px rgba(15,43,70,0.2);display:flex;align-items:center;gap:8px';
+  indicator.innerHTML = '<div style="width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.8s linear infinite"></div> Generating next exercise…';
+  document.body.appendChild(indicator);
+
+  try {
+    const newExercises = await generateExercises(
+      [targetSkill],
+      calcOverallLevel(),
+      scoreMap,
+      isMLL,
+      lastSub?.content?.substring(0, 400) || ''
+    );
+
+    if (newExercises.length) {
+      STATE.exercises.push(...newExercises);
+      if (lastSub) { lastSub.exercises = STATE.exercises; saveData(); }
+
+      // Update badge
+      const newPending = STATE.exercises.filter(e => !e.completed).length;
+      const badge = document.getElementById('ex-badge');
+      if (badge) { badge.textContent = newPending; badge.style.display = newPending ? 'inline' : 'none'; }
+
+      // Refresh tab if already open
+      if (STATE.studentTab === 'exercises') {
+        const container = document.getElementById('student-main-content');
+        if (container) container.innerHTML = renderTabExercises();
+      }
+    }
+  } catch(e) {
+    console.warn('generateNextExercise failed:', e);
+  } finally {
+    document.getElementById('next-ex-indicator')?.remove();
+  }
 }
 
 // ── MILESTONES ──
@@ -1442,7 +1709,12 @@ function renderTabExercises() {
   if (!STATE.exercises.length) return `
     <h1 class="page-title">Practice Exercises 🎯</h1>
     <p class="page-sub">Targeted exercises will appear here after you submit writing.</p>
-    <div class="empty-state"><div class="empty-icon">🎯</div><div class="empty-title">No exercises yet</div><p>Submit your first essay to get personalized practice exercises.</p></div>`;
+    <div class="empty-state">
+      <div class="empty-icon">🎯</div>
+      <div class="empty-title">No exercises yet</div>
+      <p>Submit your first essay to get personalized practice — or jump straight in below.</p>
+      <button class="btn btn-primary" style="margin-top:16px" onclick="startPracticeFromScratch()">✨ Start Practicing Now</button>
+    </div>`;
 
   const hasMLL = pending.some(e => e.exercise_type === 'mll_frames');
 
@@ -1458,13 +1730,27 @@ function renderTabExercises() {
           + '<div class="ex-prompt">' + ex.prompt + '</div>'
           + '<div class="ex-instructions">' + ex.instructions + '</div>'
           + (ex.example_response ? '<div class="ex-example"><strong>Model Response:</strong> ' + ex.example_response + '</div>' : '')
-          + '<textarea class="ex-response" id="ex-response-' + i + '" placeholder="Write your response here..."></textarea>'
-          + (ex.feedback ? '<div class="ex-feedback">✅ ' + ex.feedback + '</div>'
+          + (ex.feedback && ex.student_response
+              ? '<div style="background:var(--cream);border-radius:8px;padding:10px 14px;font-size:0.875rem;color:var(--navy);margin-top:8px;line-height:1.65;border:1px solid var(--border)"><div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6B8299;margin-bottom:4px">Your response</div>' + ex.student_response + '</div>'
+              : '<textarea class="ex-response" id="ex-response-' + i + '" placeholder="Write your response here..."></textarea>')
+          + (ex.feedback
+              ? renderStructuredFeedback(ex.feedback)
               : '<button class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="submitExercise(' + i + ')">Submit Response</button>')
           + '</div>'
       ).join('')
     + (done.length ? '<div class="panel" style="margin-top:8px"><div class="panel-title" style="color:#6B8299">Completed (' + done.length + ')</div>'
-        + done.map(ex => '<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:0.875rem;color:#6B8299">✅ <strong style="color:var(--navy)">' + ex.skill_area + '</strong>' + (ex.exercise_type === 'mll_frames' ? ' 🌐' : '') + ' — completed</div>').join('')
+        + done.map(ex => {
+            const fb = ex.exercise_type === 'mll_frames' ? renderMLLFeedback(ex.feedback, ex.frames) : renderStructuredFeedback(ex.feedback);
+            return '<div style="padding:14px 0;border-bottom:1px solid var(--border)">'
+              + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
+              + '<span style="font-size:0.875rem;font-weight:700;color:var(--navy)">✅ ' + ex.skill_area + '</span>'
+              + (ex.exercise_type === 'mll_frames' ? '<span class="mll-badge" style="font-size:0.65rem;padding:2px 7px">🌐 MLL</span>' : '')
+              + '</div>'
+              + (ex.student_response ? '<div style="font-size:0.82rem;color:#6B8299;background:var(--cream);border-radius:6px;padding:8px 10px;margin-bottom:8px"><strong>Your response:</strong> ' + ex.student_response.substring(0,120) + (ex.student_response.length > 120 ? '…' : '') + '</div>' : '')
+              + fb
+              + '</div>';
+          }).join('')
+        + (pending.length === 0 ? '<div style="padding:14px 0 4px;text-align:center"><button class="btn btn-primary btn-sm" onclick="startPracticeFromScratch()">✨ Generate More Practice</button></div>' : '')
         + '</div>' : '');
 }
 
