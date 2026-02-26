@@ -729,10 +729,17 @@ function hideLoading() {
 
 // ── HELPERS ──
 function scoreToLevel(score) {
+  // Aligned to Common Core State Standards (CCSS) writing performance levels:
+  // L1 = Well Below Standard  (0–44)
+  // L2 = Approaching Standard (45–64)
+  // L3 = Meeting Standard     (65–79)
+  // L4 = Exceeding Standard   (80–89)
+  // L5 = Advanced             (90–100)
+  // Thresholds match SBAC/PARCC achievement level descriptors for W strand
   if (score >= 90) return 5;
-  if (score >= 75) return 4;
-  if (score >= 55) return 3;
-  if (score >= 35) return 2;
+  if (score >= 80) return 4;
+  if (score >= 65) return 3;
+  if (score >= 45) return 2;
   return 1;
 }
 function calcOverallLevel() {
@@ -740,10 +747,10 @@ function calcOverallLevel() {
   return vals.reduce((a,b) => a+b, 0) / vals.length;
 }
 
-// Detect multilingual learner: 2+ skills scoring at L1 or L2 (score <= 54)
+// Detect multilingual learner: 2+ skills scoring at L1 or L2 (score <= 64, per CCSS thresholds)
 function detectMLL(scores) {
   if (!scores) return false;
-  return Object.values(scores).filter(s => s <= 54).length >= 2;
+  return Object.values(scores).filter(s => s <= 64).length >= 2;
 }
 
 // FERPA: generate stable anonymous ID from name (not reversible)
@@ -856,7 +863,7 @@ function renderStudentDashboard() {
 // ── TAB: DASHBOARD ──
 function renderTabDashboard() {
   const level = calcOverallLevel().toFixed(1);
-  const levelLabel = ['','Below Grade','Approaching','Grade Level','Above Grade','Advanced'][Math.round(calcOverallLevel())] || 'Below Grade';
+  const levelLabel = ['','Well Below Standard','Approaching Standard','Meeting Standard','Exceeding Standard','Advanced'][Math.round(calcOverallLevel())] || 'Below Grade';
   const subs = STATE.submissions.filter(s => s.studentName === STATE.student?.name);
   const pending = STATE.exercises.filter(e => !e.completed).length;
   const unread = (STATE.readings || []).filter(r => !r.read).length;
@@ -1121,12 +1128,24 @@ async function callAI(content, gradeLevel, assignmentPrompt) {
     || localStorage.getItem('writelift_openai_key') || localStorage.getItem('fallback_api_key');
   if (!apiKey || apiKey.length < 20) throw new Error('No API key found.');
 
-  const rubric = `ORGANIZATION: Paragraph structure, flow, transitions (L1=no structure, L3=basic, L5=sophisticated)
-EVIDENCE: Supporting details, examples, reasoning (L1=none, L3=basic integration, L5=nuanced synthesis)
-GRAMMAR: Correctness, mechanics, punctuation (L1=many errors, L3=some errors, L5=near-flawless)
-SENTENCE_VARIETY: Variation in length and structure (L1=all similar, L3=some mix, L5=rich deliberate variety)
-VOCABULARY: Word choice, precision, richness (L1=very basic, L3=adequate, L5=sophisticated)
-ARGUMENT_STRENGTH: Thesis, reasoning, counterargument (L1=no position, L3=clear thesis, L5=compelling)`;
+  // CCSS-aligned scoring rubric. Scores are 0-100 mapped to CCSS performance levels:
+  // L1=Well Below (0-44) | L2=Approaching (45-64) | L3=Meeting (65-79) | L4=Exceeding (80-89) | L5=Advanced (90-100)
+  // CRITICAL: Score a typical grade-level essay around 65-72. Most student writing earns 45-79.
+  // Reserve 80+ for genuinely strong work and 90+ for exceptional/publishable quality.
+  // Do NOT score everything at 25-40 — that would mean the student writes at 2nd-grade level.
+  const rubric = 'Score each skill 0-100 using CCSS Writing Standards. Use the full range honestly.\n\n'
+    + 'SCORING GUIDE (most Grade 6-10 student writing lands in the 50-75 range):\n'
+    + '  0-44  (Well Below Standard / L1): Serious structural problems; hard to follow; missing required elements for this grade\n'
+    + '  45-64 (Approaching Standard / L2): Partial understanding; some key elements present but inconsistent; below grade expectations\n'
+    + '  65-79 (Meeting Standard / L3): Meets grade-level CCSS expectations; clear and functional; minor weaknesses\n'
+    + '  80-89 (Exceeding Standard / L4): Consistently above grade level; strong command; few errors\n'
+    + '  90-100 (Advanced / L5): Exemplary; sophisticated; publishable-quality for this grade band\n\n'
+    + 'ORGANIZATION (CCSS W.1a, W.2a, W.3a): Intro/body/conclusion structure, logical flow, transitions, paragraph unity\n'
+    + 'EVIDENCE (CCSS W.1b, W.2b, W.9): Use of relevant details, quotes, facts, examples to support claims; citation or attribution\n'
+    + 'GRAMMAR (CCSS L.1, L.2): Sentence correctness, punctuation, capitalization, spelling, subject-verb agreement\n'
+    + 'SENTENCE_VARIETY (CCSS L.3a): Mix of simple, compound, complex sentences; varied openings; deliberate stylistic choices\n'
+    + 'VOCABULARY (CCSS L.4, L.6): Precise, grade-appropriate word choice; domain-specific terms; avoidance of vague filler words\n'
+    + 'ARGUMENT_STRENGTH (CCSS W.1): Clear claim/thesis, logical reasoning, acknowledgment of counterargument, conclusion';
 
   const userPrompt = 'Grade ' + gradeLevel + ' student.' + (assignmentPrompt ? ' Assignment: "' + assignmentPrompt + '"' : ' Free write.')
     + '\n\nRUBRIC:\n' + rubric
@@ -1148,7 +1167,15 @@ ARGUMENT_STRENGTH: Thesis, reasoning, counterargument (L1=no position, L3=clear 
       max_tokens: 1800,
       response_format: { type: 'json_object' },
       messages: [
-        { role: 'system', content: 'You are WriteLift AI, a supportive K-12 writing assessment engine. Assess Grade ' + gradeLevel + ' writing fairly and encouragingly. Reference specific sentences. Be specific and actionable. IMPORTANT: Also check for factual accuracy — if the student states something mathematically, scientifically, or historically incorrect, flag it gently and educationally in the factual_errors array. Respond ONLY with valid JSON.' },
+        { role: 'system', content: 'You are WriteLift AI, a K-12 writing assessment engine aligned to Common Core State Standards (CCSS). ' +
+          'Score Grade ' + gradeLevel + ' writing HONESTLY against grade-level CCSS expectations using the full 0-100 range. ' +
+          'A typical student writing at grade level should score 65-79 on most skills. ' +
+          'DO NOT compress all scores into the 20-45 range — that implies every student writes at a 2nd-grade level, which is inaccurate and demoralizing. ' +
+          'DO NOT inflate scores to 85-100 unless the writing is genuinely exemplary. ' +
+          'Score what is actually on the page: if a student writes a clear 3-paragraph essay with a thesis and some evidence, that is Meeting Standard (65-79), not Well Below Standard. ' +
+          'Reference specific sentences. Be specific and actionable. ' +
+          'IMPORTANT: Check for factual accuracy — flag any mathematical, scientific, or historical errors gently in factual_errors. ' +
+          'Respond ONLY with valid JSON.' },
         { role: 'user', content: userPrompt }
       ]
     })
@@ -1781,7 +1808,7 @@ function renderTabHistory() {
   return '<h1 class="page-title">📋 My Writing</h1>'
     + '<p class="page-sub">' + subs.length + ' submission' + (subs.length !== 1 ? 's' : '') + ' — click any entry to see full feedback</p>'
     + subs.map((sub, i) => {
-        const levelLabel = ['','Below Grade','Approaching','Grade Level','Above Grade','Advanced'][sub.overallLevel || 1];
+        const levelLabel = ['','Well Below Standard','Approaching Standard','Meeting Standard','Exceeding Standard','Advanced'][sub.overallLevel || 1];
         const date = new Date(sub.date).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
         const skillChips = Object.entries(sub.scores || {}).map(([sk, sc]) =>
           '<div class="hc-skill-chip"><span style="color:' + SKILL_COLORS[sk] + ';font-weight:700;font-size:0.7rem">' + SKILL_LABELS[sk] + '</span><span class="hc-skill-score">' + sc + '</span></div>'
@@ -2151,10 +2178,10 @@ function _renderTeacherDashboardInner() {
         <div class="heatmap-header-bar">
           <span class="hh-title">Skill Heatmap — ${activeClass ? activeClass.name : 'All Classes'}</span>
           <div class="hh-legend">
-            <div class="hl-item"><div class="hl-dot" style="background:rgba(232,93,117,0.6)"></div>L1</div>
-            <div class="hl-item"><div class="hl-dot" style="background:rgba(244,165,54,0.6)"></div>L2</div>
-            <div class="hl-item"><div class="hl-dot" style="background:rgba(91,164,207,0.6)"></div>L3</div>
-            <div class="hl-item"><div class="hl-dot" style="background:rgba(46,204,138,0.6)"></div>L4–5</div>
+            <div class="hl-item"><div class="hl-dot" style="background:rgba(232,93,117,0.6)"></div>L1 Well Below</div>
+            <div class="hl-item"><div class="hl-dot" style="background:rgba(244,165,54,0.6)"></div>L2 Approaching</div>
+            <div class="hl-item"><div class="hl-dot" style="background:rgba(91,164,207,0.6)"></div>L3 Meeting</div>
+            <div class="hl-item"><div class="hl-dot" style="background:rgba(46,204,138,0.6)"></div>L4–5 Exceeding/Advanced</div>
             <div class="hl-item">🌐 MLL</div>
           </div>
         </div>
@@ -2414,7 +2441,7 @@ function confirmDeleteClass(classId) {
 function viewSubmission(id) {
   const sub = STATE.submissions.find(s => s.id == id);
   if (!sub) return;
-  const levelLabel = ['','Below Grade','Approaching','Grade Level','Above Grade','Advanced'][sub.overallLevel||1];
+  const levelLabel = ['','Well Below Standard','Approaching Standard','Meeting Standard','Exceeding Standard','Advanced'][sub.overallLevel||1];
   const mllTag = sub.isMLL ? '<span class="mll-badge" style="font-size:0.65rem;padding:2px 7px;margin-left:8px">🌐 MLL</span>' : '';
   const weakSkills = Object.entries(sub.scores||{}).sort((a,b)=>a[1]-b[1]).slice(0,2);
   const strategies = weakSkills.map(([sk, sc]) => {
