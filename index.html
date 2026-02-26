@@ -637,29 +637,99 @@ function saveData() {
 }
 function loadData() {
   try {
-    // Try current key first
-    let raw = localStorage.getItem(STORAGE_KEY);
-
-    // If empty, migrate from any older storage keys
-    if (!raw) {
-      const oldKeys = ['writelift_data_v2', 'writelift_data_v1', 'writelift_data'];
-      for (const oldKey of oldKeys) {
-        const oldRaw = localStorage.getItem(oldKey);
-        if (oldRaw) {
-          console.log('WriteLift: migrating data from', oldKey);
-          raw = oldRaw;
-          break;
-        }
-      }
-    }
-
+    // ── STEP 1: Load current v3 data ──
+    const raw = localStorage.getItem(STORAGE_KEY);
     const d = JSON.parse(raw || '{}');
     if (d.teacher) STATE.teacher = d.teacher;
     if (d.submissions) STATE.submissions = d.submissions;
     if (d.classes) STATE.classes = d.classes;
     if (d.activeClassId) STATE.activeClassId = d.activeClassId;
 
-    // Migrate old single-class data (no classes array)
+    // ── STEP 2: Scan ALL storage keys for older WriteLift versions and merge ──
+    // This runs every time — not just when v3 is empty — so submissions from older
+    // versions are always pulled in, even if v3 already has some data.
+    const ALL_OLD_KEYS = [
+      'writelift_data_v2', 'writelift_data_v1', 'writelift_data',
+      // Also scan any dynamic keys from older index files that may have used custom names
+    ];
+    // Additionally sweep all localStorage keys for anything writelift-shaped
+    const dynamicOldKeys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k !== STORAGE_KEY && k.toLowerCase().includes('writelift') && !ALL_OLD_KEYS.includes(k)) {
+        dynamicOldKeys.push(k);
+      }
+    }
+    const keysToMerge = [...ALL_OLD_KEYS, ...dynamicOldKeys];
+
+    let mergedCount = 0;
+    const existingIds = new Set(STATE.submissions.map(s => String(s.id)));
+
+    for (const oldKey of keysToMerge) {
+      try {
+        const oldRaw = localStorage.getItem(oldKey);
+        if (!oldRaw) continue;
+        const oldData = JSON.parse(oldRaw);
+
+        // Merge teacher info if current state has none
+        if (!STATE.teacher && oldData.teacher) {
+          STATE.teacher = oldData.teacher;
+        }
+
+        // Merge classes — add any classes from old data not already in STATE.classes
+        if (oldData.classes?.length) {
+          oldData.classes.forEach(oldCls => {
+            const exists = STATE.classes.some(c =>
+              c.id === oldCls.id ||
+              (c.code && oldCls.code && c.code.toUpperCase() === oldCls.code.toUpperCase())
+            );
+            if (!exists) STATE.classes.push(oldCls);
+          });
+        }
+
+        // Merge old single-class teacher into classes array
+        if (oldData.teacher && !oldData.classes?.length) {
+          const t = oldData.teacher;
+          if (t.code) {
+            const alreadyHas = STATE.classes.some(c =>
+              c.code && t.code && c.code.toUpperCase() === t.code.toUpperCase()
+            );
+            if (!alreadyHas) {
+              STATE.classes.push({
+                id: 'class_legacy_' + oldKey.replace(/[^a-z0-9]/gi, '_'),
+                name: t.className || 'Imported Class',
+                grade: t.grade || 7,
+                prompt: t.prompt || '',
+                code: t.code,
+                color: '#F4A536'
+              });
+            }
+          }
+        }
+
+        // Merge submissions — only add ones not already present (dedup by id)
+        if (oldData.submissions?.length) {
+          const newSubs = oldData.submissions.filter(s => {
+            const sid = String(s.id);
+            if (existingIds.has(sid)) return false;
+            existingIds.add(sid);
+            return true;
+          });
+          if (newSubs.length) {
+            STATE.submissions = [...STATE.submissions, ...newSubs];
+            mergedCount += newSubs.length;
+          }
+        }
+      } catch(e) {
+        console.warn('WriteLift: could not merge from', oldKey, e);
+      }
+    }
+
+    if (mergedCount > 0) {
+      console.log('WriteLift: merged', mergedCount, 'historical submissions from older storage keys');
+    }
+
+    // ── STEP 3: Migrate old single-class data structure (no classes array) ──
     if (STATE.teacher && !STATE.classes.length) {
       const t = STATE.teacher;
       const cls = { id:'class_legacy', name: t.className || 'My Class', grade: t.grade, prompt: t.prompt, code: t.code, color:'#F4A536' };
@@ -668,14 +738,9 @@ function loadData() {
       STATE.submissions = STATE.submissions.map(s => ({ ...s, classId: 'class_legacy' }));
     }
 
-    // Save under current key so data is preserved going forward
-    if (raw && !localStorage.getItem(STORAGE_KEY)) {
-      saveData();
-      console.log('WriteLift: migration complete, data saved to', STORAGE_KEY);
-    }
-
-    // Backfill classId on all submissions that have a matching promptCode but no classId.
-    // Runs on every load so code-only submissions get linked as soon as the teacher opens the dashboard.
+    // ── STEP 4: Backfill classId on submissions that only have a promptCode ──
+    // Students arrive with empty STATE.classes, so their submissions save with classId:null.
+    // When the teacher's browser loads, this links them to the right class.
     let backfillChanged = false;
     STATE.classes.forEach(cls => {
       if (!cls.code) return;
@@ -687,10 +752,12 @@ function loadData() {
         }
       });
     });
-    if (backfillChanged) {
+
+    // ── STEP 5: Save everything back to v3 ──
+    if (mergedCount > 0 || backfillChanged || !raw) {
       saveData();
-      console.log('WriteLift: backfilled classId on', STATE.submissions.filter(s => s.classId).length, 'submissions');
     }
+
   } catch(e) { console.warn('loadData error:', e); }
 }
 loadData();
@@ -2535,30 +2602,133 @@ function showDataRecovery() {
   const found = [];
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
-    if (key && key.includes('writelift')) {
+    if (key && key.toLowerCase().includes('writelift')) {
       try {
         const val = JSON.parse(localStorage.getItem(key) || '{}');
         found.push({ key, subCount: val.submissions?.length || 0, teacher: val.teacher?.email || '—' });
       } catch(e) { found.push({ key, subCount: 0, teacher: 'parse error' }); }
     }
   }
-  let html = '<h2 class="modal-title">Data Recovery Tool</h2>';
+
+  // Count how many submissions from old keys are NOT already in v3
+  const currentIds = new Set(STATE.submissions.map(s => String(s.id)));
+  let totalMissing = 0;
+  found.filter(f => f.key !== STORAGE_KEY).forEach(f => {
+    try {
+      const val = JSON.parse(localStorage.getItem(f.key) || '{}');
+      const missing = (val.submissions || []).filter(s => !currentIds.has(String(s.id))).length;
+      f.missing = missing;
+      totalMissing += missing;
+    } catch(e) { f.missing = 0; }
+  });
+
+  let html = '<h2 class="modal-title">Data Recovery & Migration</h2>';
+
+  if (totalMissing > 0) {
+    html += `<div style="background:rgba(46,204,138,0.08);border:1px solid rgba(46,204,138,0.25);border-radius:10px;padding:14px 16px;margin-bottom:16px">
+      <div style="font-weight:700;color:#1a4a30;margin-bottom:6px">📥 ${totalMissing} unimported submission${totalMissing !== 1 ? 's' : ''} found in older data</div>
+      <div style="font-size:0.82rem;color:#2A5440;margin-bottom:10px">These responses exist in older versions of WriteLift on this browser but haven't been merged into the current version yet.</div>
+      <button class="btn btn-primary btn-sm" onclick="mergeAllHistoricalData()">Import All Historical Responses →</button>
+    </div>`;
+  } else if (found.length > 1) {
+    html += '<div style="background:rgba(46,204,138,0.06);border:1px solid rgba(46,204,138,0.2);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:0.82rem;color:#2A5440">✅ All historical submissions have already been imported into the current version.</div>';
+  }
+
   if (!found.length) {
     html += '<div class="alert-banner">No WriteLift data found in this browser localStorage.</div>';
   } else {
-    html += '<p class="modal-sub">WriteLift data found in this browser:</p>';
+    html += '<p class="modal-sub" style="margin-bottom:10px">All WriteLift data on this browser:</p>';
     found.forEach(f => {
       const isCurrent = f.key === STORAGE_KEY;
+      const missingBadge = (!isCurrent && f.missing > 0)
+        ? `<span style="font-size:0.72rem;background:rgba(46,204,138,0.15);color:#1a4a30;padding:2px 7px;border-radius:100px;margin-left:6px">${f.missing} not yet imported</span>`
+        : '';
       html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--cream);border-radius:10px;margin-bottom:8px">
-        <div><div style="font-weight:700;font-size:0.875rem;color:var(--navy)">${f.key}${isCurrent ? ' <span style="color:var(--emerald);font-size:0.72rem">(current)</span>' : ''}</div>
-        <div style="font-size:0.78rem;color:#6B8299">${f.subCount} submissions · ${f.teacher}</div></div>
-        ${!isCurrent ? `<button class="btn btn-primary btn-sm" onclick="recoverFromKey('${f.key}')">Restore</button>` : '<span style="font-size:0.78rem;color:var(--emerald)">✓ Active</span>'}
+        <div>
+          <div style="font-weight:700;font-size:0.875rem;color:var(--navy)">${f.key}${isCurrent ? ' <span style="color:var(--emerald);font-size:0.72rem">(current)</span>' : ''}${missingBadge}</div>
+          <div style="font-size:0.78rem;color:#6B8299">${f.subCount} submission${f.subCount !== 1 ? 's' : ''} · ${f.teacher}</div>
+        </div>
+        ${!isCurrent
+          ? `<button class="btn btn-secondary btn-sm" onclick="recoverFromKey('${f.key}')">Merge</button>`
+          : '<span style="font-size:0.78rem;color:var(--emerald)">✓ Active</span>'}
       </div>`;
     });
   }
-  html += '<p style="font-size:0.78rem;color:#6B8299;margin-top:14px;line-height:1.5">Note: localStorage is browser-specific. Data submitted on a different device appears in your Google Sheet.</p>';
+  html += '<p style="font-size:0.78rem;color:#6B8299;margin-top:14px;line-height:1.5">Note: localStorage is browser-specific. Data submitted on a different device or browser will not appear here — check your Google Sheet for those responses.</p>';
   document.getElementById('modal-submission-content').innerHTML = html;
   openModal('modal-submission');
+}
+
+function mergeAllHistoricalData() {
+  const currentIds = new Set(STATE.submissions.map(s => String(s.id)));
+  let totalMerged = 0;
+
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (!key || key === STORAGE_KEY || !key.toLowerCase().includes('writelift')) continue;
+    try {
+      const oldData = JSON.parse(localStorage.getItem(key) || '{}');
+
+      // Merge classes
+      if (oldData.classes?.length) {
+        oldData.classes.forEach(oldCls => {
+          const exists = STATE.classes.some(c =>
+            c.id === oldCls.id ||
+            (c.code && oldCls.code && c.code.toUpperCase() === oldCls.code.toUpperCase())
+          );
+          if (!exists) STATE.classes.push(oldCls);
+        });
+      }
+
+      // Reconstruct legacy class from teacher object if needed
+      if (oldData.teacher && !oldData.classes?.length && oldData.teacher.code) {
+        const t = oldData.teacher;
+        const alreadyHas = STATE.classes.some(c =>
+          c.code && t.code && c.code.toUpperCase() === t.code.toUpperCase()
+        );
+        if (!alreadyHas) {
+          STATE.classes.push({
+            id: 'class_legacy_' + key.replace(/[^a-z0-9]/gi, '_'),
+            name: t.className || 'Imported Class',
+            grade: t.grade || 7,
+            prompt: t.prompt || '',
+            code: t.code,
+            color: '#5BA4CF'
+          });
+        }
+      }
+
+      // Merge submissions
+      const newSubs = (oldData.submissions || []).filter(s => {
+        const sid = String(s.id);
+        if (currentIds.has(sid)) return false;
+        currentIds.add(sid);
+        return true;
+      });
+      STATE.submissions = [...STATE.submissions, ...newSubs];
+      totalMerged += newSubs.length;
+    } catch(e) {
+      console.warn('mergeAllHistoricalData: could not merge', key, e);
+    }
+  }
+
+  // Backfill classIds after merge
+  STATE.classes.forEach(cls => {
+    if (!cls.code) return;
+    STATE.submissions.forEach(s => {
+      if (!s.classId && s.promptCode &&
+          s.promptCode.toUpperCase() === cls.code.toUpperCase()) {
+        s.classId = cls.id;
+      }
+    });
+  });
+
+  saveData();
+  closeModal('modal-submission');
+  renderTeacherDashboard();
+  showToast(totalMerged > 0
+    ? `✅ Imported ${totalMerged} historical submission${totalMerged !== 1 ? 's' : ''} successfully.`
+    : 'No new submissions found to import.');
 }
 
 function recoverFromKey(key) {
