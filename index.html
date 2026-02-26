@@ -548,6 +548,28 @@ h1,h2,h3,h4{font-family:'Playfair Display',serif;line-height:1.15}
 .color-swatch.selected{border-color:var(--navy);transform:scale(1.15)}
 .color-swatch:hover{transform:scale(1.1)}
 
+/* ── MY WRITING HISTORY TAB ── */
+.history-card{background:var(--white);border-radius:14px;border:1px solid var(--border);margin-bottom:14px;overflow:hidden;transition:box-shadow 0.2s}
+.history-card:hover{box-shadow:var(--shadow-md)}
+.hc-top{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;gap:12px;flex-wrap:wrap}
+.hc-left{flex:1}
+.hc-title{font-weight:700;font-size:0.95rem;color:var(--navy)}
+.hc-meta{font-size:0.75rem;color:#6B8299;margin-top:2px}
+.hc-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hc-score{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:900;color:var(--amber-dark);line-height:1}
+.hc-chevron{color:#6B8299;font-size:0.8rem;transition:transform 0.2s;flex-shrink:0}
+.hc-skills-row{display:flex;gap:8px;flex-wrap:wrap;padding:0 20px 14px;border-bottom:1px solid var(--border)}
+.hc-skill-chip{background:var(--cream);border-radius:6px;padding:4px 10px;display:flex;flex-direction:column;align-items:center;gap:1px}
+.hc-skill-score{font-size:0.75rem;font-weight:700;color:var(--navy)}
+.hc-detail{padding:20px;border-top:1px solid var(--border);background:var(--cream)}
+.hc-section-label{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#6B8299;margin-bottom:8px}
+.hc-essay-preview{background:var(--white);border-radius:10px;padding:14px 16px;margin-bottom:14px;border:1px solid var(--border)}
+.hc-essay-text{font-size:0.85rem;line-height:1.7;color:var(--navy);max-height:200px;overflow-y:auto;white-space:pre-wrap}
+.hc-feedback-block{background:var(--white);border-radius:10px;padding:14px 16px;margin-bottom:10px;border:1px solid var(--border)}
+.hc-feedback-summary{font-size:0.875rem;line-height:1.6;color:var(--navy)}
+.hc-feedback-item{font-size:0.82rem;line-height:1.6;color:var(--text-secondary);padding:8px 0;border-bottom:1px solid var(--border)}
+.hc-feedback-item:last-child{border-bottom:none}
+
 /* ── READINGS CALLOUT (post-submission) ── */
 .readings-callout{margin-top:16px;background:rgba(91,164,207,0.07);border:1px solid rgba(91,164,207,0.25);border-radius:12px;padding:18px 20px}
 .rc-callout-header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;flex-wrap:wrap}
@@ -748,16 +770,27 @@ function studentSignIn() {
   const period = document.getElementById('s-period').value.trim();
   const promptCode = document.getElementById('s-prompt-code').value.trim().toUpperCase();
   if (!name || !grade) return showToast('Please enter your name and grade level.', true);
-  STATE.student = { name, grade: parseInt(grade), period, promptCode };
+  // Resolve classId from promptCode — match against known classes
+  const matchedClass = promptCode
+    ? STATE.classes.find(c => c.code && c.code.toUpperCase() === promptCode.toUpperCase())
+    : null;
+  const classId = matchedClass ? matchedClass.id : null;
+
+  STATE.student = { name, grade: parseInt(grade), period, promptCode, classId };
   STATE.exercises = [];
   STATE.milestones = [];
-  // load from storage
+  STATE.readings = [];
+  STATE.studentLexile = null;
+
+  // Load previous data for returning students
   const storedSubs = STATE.submissions.filter(s => s.studentName === name);
   if (storedSubs.length) {
     const last = storedSubs[storedSubs.length - 1];
     if (last.skills) STATE.skills = { ...last.skills };
     if (last.milestones) STATE.milestones = [...new Set([...STATE.milestones, ...last.milestones])];
     if (last.exercises) STATE.exercises = last.exercises;
+    if (last.readings) STATE.readings = last.readings;
+    if (last.studentLexile) STATE.studentLexile = last.studentLexile;
   }
   closeModal('modal-student');
   showScreen('student');
@@ -792,7 +825,7 @@ function teacherSetup() {
 function switchStudentTab(tab) {
   STATE.studentTab = tab;
   document.querySelectorAll('.snav-item').forEach((el, i) => {
-    el.classList.toggle('active', ['dashboard','write','exercises','readings','milestones'][i] === tab);
+    el.classList.toggle('active', ['dashboard','write','history','exercises','readings','milestones'][i] === tab);
   });
   renderStudentDashboard();
 }
@@ -824,6 +857,7 @@ function renderStudentDashboard() {
   if (STATE.studentTab === 'dashboard') container.innerHTML = renderTabDashboard();
   else if (STATE.studentTab === 'write') container.innerHTML = renderTabWrite();
   else if (STATE.studentTab === 'exercises') container.innerHTML = renderTabExercises();
+  else if (STATE.studentTab === 'history') container.innerHTML = renderTabHistory();
   else if (STATE.studentTab === 'readings') renderTabReadings(container);
   else if (STATE.studentTab === 'milestones') container.innerHTML = renderTabMilestones();
   attachStudentEvents();
@@ -982,6 +1016,112 @@ function updateWordCount(el) {
   display.className = 'word-count' + (words >= 150 ? ' good' : words >= 80 ? '' : ' warn');
 }
 
+// ── TAB: HISTORY (My Writing) ──
+function renderTabHistory() {
+  const subs = STATE.submissions
+    .filter(s => s.studentName === STATE.student.name)
+    .slice().reverse();
+
+  if (!subs.length) return `
+    <h1 class="page-title">📋 My Writing</h1>
+    <p class="page-sub">All your past submissions and feedback will appear here.</p>
+    <div class="empty-state">
+      <div class="empty-icon">📝</div>
+      <div class="empty-title">No submissions yet</div>
+      <p>Submit your first essay to start building your writing history.</p>
+      <button class="btn btn-primary" style="margin-top:16px" onclick="switchStudentTab('write')">✍️ Start Writing</button>
+    </div>`;
+
+  return `
+    <h1 class="page-title">📋 My Writing</h1>
+    <p class="page-sub">${subs.length} submission${subs.length !== 1 ? 's' : ''} — click any entry to see full feedback</p>
+    ${subs.map((sub, i) => {
+      const levelLabel = ['','Below Grade','Approaching','Grade Level','Above Grade','Advanced'][sub.overallLevel || 1];
+      const date = new Date(sub.date).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+      return `
+      <div class="history-card" onclick="toggleHistoryEntry('hentry-${i}')">
+        <div class="hc-top">
+          <div class="hc-left">
+            <div class="hc-title">${sub.assignmentTitle || 'Free Write'}</div>
+            <div class="hc-meta">${date} · ${sub.wordCount || '?'} words</div>
+          </div>
+          <div class="hc-right">
+            <span class="hc-score">${sub.overallScore || '—'}</span>
+            <span class="skill-level-badge lv${sub.overallLevel || 1}" style="width:auto;padding:4px 12px">L${sub.overallLevel || '—'} · ${levelLabel}</span>
+            <span class="hc-chevron" id="hchev-${i}">▼</span>
+          </div>
+        </div>
+
+        <div class="hc-skills-row">
+          ${Object.entries(sub.scores || {}).map(([sk, sc]) =>
+            `<div class="hc-skill-chip">
+              <span style="color:${SKILL_COLORS[sk]};font-weight:700;font-size:0.7rem">${SKILL_LABELS[sk]}</span>
+              <span class="hc-skill-score">${sc}</span>
+            </div>`
+          ).join('')}
+        </div>
+
+        <div class="hc-detail hidden" id="hentry-${i}">
+          <div class="hc-essay-preview">
+            <div class="hc-section-label">Your Essay</div>
+            <div class="hc-essay-text">${(sub.content || '').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+          </div>
+
+          ${sub.feedback_summary ? `
+          <div class="hc-feedback-block">
+            <div class="hc-section-label">💬 AI Feedback</div>
+            <div class="hc-feedback-summary">${sub.feedback_summary}</div>
+          </div>` : ''}
+
+          ${sub.strengths?.length ? `
+          <div class="hc-feedback-block">
+            <div class="hc-section-label">✅ Strengths</div>
+            ${sub.strengths.map(s => `
+            <div class="hc-feedback-item fi-strength">
+              <strong>"${s.text}"</strong> — ${s.comment}
+            </div>`).join('')}
+          </div>` : ''}
+
+          ${sub.improvements?.length ? `
+          <div class="hc-feedback-block">
+            <div class="hc-section-label">📝 Improvements</div>
+            ${sub.improvements.map(s => `
+            <div class="hc-feedback-item fi-improve">
+              <strong>"${s.text}"</strong> — ${s.comment}
+              ${s.example ? `<div style="margin-top:4px;font-style:italic;color:var(--sky)">Try: "${s.example}"</div>` : ''}
+            </div>`).join('')}
+          </div>` : ''}
+
+          ${sub.next_steps ? `
+          <div class="next-steps-box" style="margin-top:12px">
+            🎯 <strong>Next Step:</strong> ${sub.next_steps}
+          </div>` : ''}
+
+          ${sub.factual_errors?.length ? `
+          <div class="hc-feedback-block" style="background:rgba(244,165,54,0.06);border:1px solid rgba(244,165,54,0.2);border-radius:8px;padding:12px 14px">
+            <div class="hc-section-label" style="color:var(--amber-dark)">🔍 Fact Check</div>
+            ${sub.factual_errors.map(e => `
+            <div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid rgba(244,165,54,0.15)">
+              <div style="font-size:0.8rem;color:#6B3A00">You wrote: <em>"${e.claim}"</em></div>
+              <div style="font-size:0.85rem;font-weight:600;color:var(--navy);margin-top:2px">✓ Actually: ${e.correction}</div>
+              <div style="font-size:0.78rem;color:#6B8299;margin-top:2px">${e.explanation}</div>
+            </div>`).join('')}
+          </div>` : ''}
+        </div>
+      </div>`;
+    }).join('')}`;
+}
+
+function toggleHistoryEntry(id) {
+  const el = document.getElementById(id);
+  const idx = id.replace('hentry-','');
+  const chev = document.getElementById('hchev-' + idx);
+  if (!el) return;
+  const isHidden = el.classList.contains('hidden');
+  el.classList.toggle('hidden', !isHidden);
+  if (chev) chev.textContent = isHidden ? '▲' : '▼';
+}
+
 // ── TAB: EXERCISES ──
 function renderTabExercises() {
   const pending = STATE.exercises.filter(e => !e.completed);
@@ -996,9 +1136,11 @@ function renderTabExercises() {
     ${pending.map((ex, i) => `
     <div class="exercise-card">
       <span class="ex-skill-tag">${ex.skill_area}</span>
+      ${ex.skill_focus ? `<div style="font-size:0.75rem;color:var(--sky);font-weight:600;margin-bottom:6px">Focus: ${ex.skill_focus}</div>` : ''}
+      ${ex.why_this_helps ? `<div style="font-size:0.8rem;color:#6B8299;background:var(--cream);border-radius:6px;padding:8px 10px;margin-bottom:10px;line-height:1.5">💡 ${ex.why_this_helps}</div>` : ''}
       <div class="ex-prompt">${ex.prompt}</div>
       <div class="ex-instructions">${ex.instructions}</div>
-      ${ex.example_response ? `<div class="ex-example"><strong>Model Response:</strong>${ex.example_response}</div>` : ''}
+      ${ex.example_response ? `<div class="ex-example"><strong>Model Response:</strong> ${ex.example_response}</div>` : ''}
       <textarea class="ex-response" id="ex-response-${i}" placeholder="Write your response here..."></textarea>
       ${ex.feedback ? `<div class="ex-feedback">✅ ${ex.feedback}</div>` : `
       <button class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="submitExercise(${i})">Submit Response</button>`}
@@ -1081,8 +1223,16 @@ async function submitEssay() {
     // Check milestones
     const newMilestones = checkMilestones(result);
 
-    // Generate exercises
-    const exercises = await generateExercises(result.micro_skills_flagged, calcOverallLevel());
+    // Generate exercises targeting the single lowest skill
+    // Sort skills by score ascending — worst skill first
+    const sortedSkills = Object.entries(result.scores)
+      .sort((a, b) => a[1] - b[1])
+      .map(([skill]) => skill);
+    // Use micro_skills_flagged if available, else fall back to lowest scoring skill name
+    const skillsToTarget = result.micro_skills_flagged?.length
+      ? result.micro_skills_flagged.slice(0, 1)  // only the #1 weakest flagged skill
+      : [sortedSkills[0]];
+    const exercises = await generateExercises(skillsToTarget, calcOverallLevel(), result.scores);
 
     // Store exercises
     STATE.exercises.unshift(...exercises.filter(e => !e.completed));
@@ -1098,6 +1248,7 @@ async function submitEssay() {
       id: Date.now(),
       studentName: STATE.student.name,   // real name — stays in browser/sheets only
       anonymousId: getAnonymousId(STATE.student.name), // FERPA-safe ID used with AI
+      classId: STATE.student.classId || null,
       grade: STATE.student.grade,
       period: STATE.student.period,
       promptCode: STATE.student.promptCode,
@@ -1192,8 +1343,8 @@ ARGUMENT_STRENGTH: Thesis, reasoning, counterargument (L1=no position, L3=clear 
       max_tokens: 1800,
       response_format: { type: 'json_object' },
       messages: [
-        { role: 'system', content: `You are WriteLift AI, a supportive K-12 writing assessment engine. Assess Grade ${gradeLevel} writing fairly and encouragingly. Reference specific sentences. Be specific and actionable. Respond ONLY with valid JSON.` },
-        { role: 'user', content: `Grade ${gradeLevel} student.${assignmentPrompt ? ` Assignment: "${assignmentPrompt}"` : ' Free write.'}\n\nRUBRIC:\n${rubric}\n\nSTUDENT WRITING:\n"""\n${content}\n"""\n\nRespond ONLY with this exact JSON:\n{"scores":{"organization":0-100,"evidence":0-100,"grammar":0-100,"sentence_variety":0-100,"vocabulary":0-100,"argument_strength":0-100},"feedback_summary":"2-3 warm encouraging sentences","strength_highlights":[{"skill":"","text":"exact quote","comment":"why strong"}],"improvement_highlights":[{"skill":"","text":"quote","comment":"suggestion","example":"rewritten version"}],"micro_skills_flagged":["specific weakness"],"next_steps":"one concrete action"}` }
+        { role: 'system', content: `You are WriteLift AI, a supportive K-12 writing assessment engine. Assess Grade ${gradeLevel} writing fairly and encouragingly. Reference specific sentences. Be specific and actionable. IMPORTANT: Also check for factual accuracy — if the student states something mathematically, scientifically, or historically incorrect, flag it gently and educationally in the factual_errors array. Respond ONLY with valid JSON.` },
+        { role: 'user', content: `Grade ${gradeLevel} student.${assignmentPrompt ? ` Assignment: "${assignmentPrompt}"` : ' Free write.'}\n\nRUBRIC:\n${rubric}\n\nSTUDENT WRITING:\n"""\n${content}\n"""\n\nRespond ONLY with this exact JSON:\n{"scores":{"organization":0-100,"evidence":0-100,"grammar":0-100,"sentence_variety":0-100,"vocabulary":0-100,"argument_strength":0-100},"feedback_summary":"2-3 warm encouraging sentences","strength_highlights":[{"skill":"","text":"exact quote","comment":"why strong"}],"improvement_highlights":[{"skill":"","text":"quote","comment":"suggestion","example":"rewritten version"}],"micro_skills_flagged":["specific weakness"],"next_steps":"one concrete action","factual_errors":[{"claim":"exact quote from student","correction":"accurate fact","type":"science|math|history|geography|other","explanation":"brief educational explanation"}]}` }
       ]
     })
   });
@@ -1218,38 +1369,46 @@ ARGUMENT_STRENGTH: Thesis, reasoning, counterargument (L1=no position, L3=clear 
     improvement_highlights: raw.improvement_highlights || [],
     micro_skills_flagged: raw.micro_skills_flagged || [],
     next_steps: raw.next_steps,
+    factual_errors: raw.factual_errors || [],
   };
 }
 
 // ── Generate Exercises ──
-async function generateExercises(microSkills, overallLevel) {
+async function generateExercises(microSkills, overallLevel, scores) {
   if (!microSkills?.length) return [];
   const apiKey = HARDCODED_API_KEY || STATE.teacher?.apiKey || localStorage.getItem('writelift_openai_key');
   if (!apiKey) return [];
-  const top = microSkills.slice(0, 2);
+
+  // Focus on the single most basic skill needing improvement
+  const targetSkill = microSkills[0];
+  const skillScore = scores ? (scores[targetSkill] || scores[Object.keys(scores).find(k =>
+    k.toLowerCase().includes(targetSkill.toLowerCase().split(' ')[0]))] || 50) : 50;
+  const skillLevel = scoreToLevel(skillScore);
   const exercises = [];
 
-  for (const skill of top) {
-    try {
-      const resp = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          max_tokens: 600,
-          response_format: { type: 'json_object' },
-          messages: [
-            { role: 'system', content: 'You are a K-12 writing coach. Respond ONLY with JSON.' },
-            { role: 'user', content: `Level ${Math.round(overallLevel)}/5 student needs practice: "${skill}". JSON: {"exercise_type":"","prompt":"exercise prompt","instructions":"1-2 sentence instructions","example_response":"model answer"}` }
-          ]
-        })
-      });
-      if (!resp.ok) continue;
+  try {
+    const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        max_tokens: 800,
+        response_format: { type: 'json_object' },
+        messages: [
+          { role: 'system', content: 'You are a K-12 writing coach. Create a focused, grade-appropriate exercise targeting the weakest skill. Start from the most basic level of that skill. Respond ONLY with JSON.' },
+          { role: 'user', content: `Grade ${STATE.student?.grade || 7} student. Overall level ${Math.round(overallLevel)}/5. Weakest skill: "${targetSkill}" at Level ${skillLevel}/5.
+
+Create ONE targeted exercise starting at the most foundational level of this skill — make it achievable and build confidence. JSON: {"exercise_type":"sentence|paragraph|revision|identify","prompt":"clear exercise prompt in student-friendly language","instructions":"2-3 step-by-step instructions","example_response":"a model answer showing what good looks like","skill_focus":"the specific sub-skill being practiced","why_this_helps":"1 sentence explaining how this exercise will improve their writing"}` }
+        ]
+      })
+    });
+    if (resp.ok) {
       const d = await resp.json();
       const ex = JSON.parse(d.choices[0].message.content);
-      exercises.push({ ...ex, skill_area: skill, completed: false, feedback: null, id: Date.now() + Math.random() });
-    } catch(e) { console.warn('Exercise gen failed for', skill, e); }
-  }
+      exercises.push({ ...ex, skill_area: targetSkill, completed: false, feedback: null, id: Date.now() + Math.random() });
+    }
+  } catch(e) { console.warn('Exercise gen failed for', targetSkill, e); }
+
   return exercises;
 }
 
@@ -1363,6 +1522,19 @@ function renderAssessmentResult(result, newMilestones) {
         </div>
 
         ${result.next_steps ? `<div class="next-steps-box">🎯 <strong>Next Step:</strong> ${result.next_steps}</div>` : ''}
+
+        ${result.factual_errors && result.factual_errors.length ? `
+        <div style="margin-top:16px;background:rgba(244,165,54,0.07);border:1px solid rgba(244,165,54,0.25);border-radius:10px;padding:16px 18px">
+          <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--amber-dark);font-weight:700;margin-bottom:10px">🔍 Fact Check</div>
+          <div style="font-size:0.82rem;color:#5A4010;margin-bottom:10px;line-height:1.5">Good writers make sure their facts are accurate. Here are a few things to double-check:</div>
+          ${result.factual_errors.map(e => `
+          <div style="background:var(--white);border-radius:8px;padding:12px 14px;margin-bottom:8px;border-left:3px solid var(--amber)">
+            <div style="font-size:0.8rem;color:#6B3A00;margin-bottom:4px">You wrote: <em>"${e.claim}"</em></div>
+            <div style="font-size:0.85rem;font-weight:600;color:var(--navy);margin-bottom:4px">✓ Actually: ${e.correction}</div>
+            <div style="font-size:0.78rem;color:#6B8299;line-height:1.5">${e.explanation}</div>
+            <div style="font-size:0.7rem;margin-top:6px"><span style="background:rgba(244,165,54,0.15);color:var(--amber-dark);padding:2px 8px;border-radius:100px;font-weight:600;text-transform:uppercase">${e.type}</span></div>
+          </div>`).join('')}
+        </div>` : ''}
 
         ${newMilestones.length ? `
         <div style="margin-top:16px;background:rgba(244,165,54,0.08);border:1px solid rgba(244,165,54,0.2);border-radius:10px;padding:14px 16px">
@@ -1489,8 +1661,15 @@ function getActiveClass() {
 function getFilteredSubs() {
   const activeClass = getActiveClass();
   if (activeClass) {
-    return STATE.submissions.filter(s => s.classId === activeClass.id || s.promptCode === activeClass.code);
+    return STATE.submissions.filter(s => {
+      // Match by classId (new system) OR by promptCode (legacy + code-based entry)
+      const byClassId = s.classId && s.classId === activeClass.id;
+      const byCode = activeClass.code && s.promptCode &&
+        s.promptCode.toUpperCase() === activeClass.code.toUpperCase();
+      return byClassId || byCode;
+    });
   }
+  // All classes — return everything
   return STATE.submissions;
 }
 
@@ -2682,6 +2861,7 @@ function switchMktTab(persona) {
       <ul class="sidebar-nav">
         <li class="snav-item active" onclick="switchStudentTab('dashboard')"><span class="snav-icon">⌂</span> Dashboard</li>
         <li class="snav-item" onclick="switchStudentTab('write')"><span class="snav-icon">✍️</span> Write</li>
+        <li class="snav-item" onclick="switchStudentTab('history')"><span class="snav-icon">📋</span> My Writing</li>
         <li class="snav-item" onclick="switchStudentTab('exercises')"><span class="snav-icon">🎯</span> Exercises <span id="ex-badge" style="background:var(--amber);color:var(--navy);border-radius:100px;padding:1px 7px;font-size:0.7rem;margin-left:4px;display:none"></span></li>
         <li class="snav-item" onclick="switchStudentTab('readings')"><span class="snav-icon">📖</span> Readings <span id="read-badge" style="background:var(--sky);color:var(--white);border-radius:100px;padding:1px 7px;font-size:0.7rem;margin-left:4px;display:none"></span></li>
         <li class="snav-item" onclick="switchStudentTab('milestones')"><span class="snav-icon">🏆</span> Milestones</li>
