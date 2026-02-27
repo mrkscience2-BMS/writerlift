@@ -586,7 +586,7 @@ const k = ['sk-proj-BWUFcy52pnpa','j4vkI_4sToEZpM2kcgR5','ln3qqZwhlC35LENv-X1GV'
             '4x7Tydfp6J3ooXXa9OiCu','T3BlbkFJlBj_iLUXD_AuQ','BTUWdTZFCGPMas79Za9If',
             'RdPmf8Mh7_5Qt_qEM4NyY','PYD9oIp6GGzXK19ugAA'];
 const HARDCODED_API_KEY = k.join('');
-const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwrr5OlMbnwGn9UoIF0Pn1Vo0mbNdoli-3MJWpzl2txADF2jQrOR7qEBONS1CDp7jMW/exec';
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyp7rZ85_Z40LrVTLwkQZc1OTWbD3QuKRY7zhNwgS6bOK7Cq62kkgkqQpFaciUqREl3/exec';
 
 // ── STATE ──
 const STATE = {
@@ -3077,44 +3077,51 @@ function parseCSV(text) {
 }
 
 async function saveToSheets(submission) {
-  // CORS-safe POST to Apps Script.
-  // Sending JSON as text/plain (no Content-Type header) avoids CORS preflight.
-  // Apps Script receives the body in e.postData.contents and parses as JSON.
-  const data = {
-    id:               String(submission.id),
-    student_name:     submission.studentName || '',
-    anonymous_id:     submission.anonymousId || '',
-    grade:            String(submission.grade || ''),
-    period:           submission.period || '',
-    class_id:         submission.classId || '',
-    prompt_code:      submission.promptCode || '',
-    assignment:       submission.assignmentTitle || '',
-    date:             submission.date || '',
-    word_count:       String(submission.wordCount || 0),
-    overall_score:    String(submission.overallScore || 0),
-    overall_level:    String(submission.overallLevel || 1),
-    organization:     String(submission.scores?.organization || 0),
-    evidence:         String(submission.scores?.evidence || 0),
-    grammar:          String(submission.scores?.grammar || 0),
-    sentence_variety: String(submission.scores?.sentence_variety || 0),
-    vocabulary:       String(submission.scores?.vocabulary || 0),
-    argument_strength:String(submission.scores?.argument_strength || 0),
-    is_mll:           String(submission.isMLL || false),
-    feedback_summary: (submission.feedback_summary || '').substring(0, 500),
-    next_steps:       (submission.next_steps || '').substring(0, 300),
-    lexile:           String(submission.studentLexile || ''),
-    content_preview:  (submission.content || '').substring(0, 500),
-  };
-  try {
-    // No Content-Type header = browser sends as text/plain = CORS simple request = no preflight
-    await fetch(SHEETS_URL, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-    console.log('WriteLift: Sheets POST sent for', submission.studentName);
-  } catch(e) {
-    console.warn('WriteLift: Sheets POST failed:', e.message);
-  }
+  // Use Image() GET request — never blocked by CORS, works on every browser and device.
+  // Apps Script receives all fields via e.parameter in doGet().
+  // The 'action=save' parameter tells doGet to write the row instead of reading.
+  return new Promise((resolve) => {
+    const params = {
+      action:           'save',
+      id:               String(submission.id),
+      student_name:     submission.studentName || '',
+      anonymous_id:     submission.anonymousId || '',
+      grade:            String(submission.grade || ''),
+      period:           submission.period || '',
+      class_id:         submission.classId || '',
+      prompt_code:      submission.promptCode || '',
+      assignment:       (submission.assignmentTitle || '').substring(0, 200),
+      date:             submission.date || '',
+      word_count:       String(submission.wordCount || 0),
+      overall_score:    String(submission.overallScore || 0),
+      overall_level:    String(submission.overallLevel || 1),
+      organization:     String(submission.scores?.organization || 0),
+      evidence:         String(submission.scores?.evidence || 0),
+      grammar:          String(submission.scores?.grammar || 0),
+      sentence_variety: String(submission.scores?.sentence_variety || 0),
+      vocabulary:       String(submission.scores?.vocabulary || 0),
+      argument_strength:String(submission.scores?.argument_strength || 0),
+      is_mll:           String(submission.isMLL || false),
+      feedback_summary: (submission.feedback_summary || '').substring(0, 300),
+      next_steps:       (submission.next_steps || '').substring(0, 200),
+      lexile:           String(submission.studentLexile || ''),
+      content_preview:  (submission.content || '').substring(0, 300),
+    };
+    const qs = Object.entries(params)
+      .map(([k,v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v))
+      .join('&');
+    const url = SHEETS_URL + '?' + qs;
+
+    const img = new Image();
+    img.onload = img.onerror = () => {
+      console.log('WriteLift: Sheets save request fired for', submission.studentName);
+      resolve();
+    };
+    img.src = url;
+
+    // Also try fetch as backup (works when CORS is not an issue)
+    fetch(url, { mode: 'no-cors' }).catch(() => {});
+  });
 }
 
 // ── EMAIL NOTIFICATION ──
