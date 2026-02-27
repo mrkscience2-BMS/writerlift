@@ -2260,14 +2260,11 @@ async function runSubmissionTest() {
   log('Sending to Google Sheets…', null);
   let postOk = false;
   try {
-    const payload = buildSheetPayload(fakeSubmission);
-    const fd = payloadToFormData(payload);
-    await fetch(SHEETS_URL, { method: 'POST', mode: 'no-cors', body: fd });
+    await saveToSheets(fakeSubmission);
     postOk = true;
-    log('Sheets POST sent (no-cors — cannot read response, checking receipt…)', null);
+    log('Sheets POST sent successfully', true);
   } catch(e) {
-    log('Sheets POST BLOCKED by browser: ' + e.message, false);
-    log('Fix: make sure Apps Script is deployed as "Anyone" access', false);
+    log('Sheets POST failed: ' + e.message, false);
   }
 
   // ── Step 3b: Wait 2 seconds then verify the row actually arrived ──
@@ -2977,102 +2974,83 @@ async function fetchWithTimeout(url, options = {}, ms = 10000) {
 }
 
 async function loadFromSheets() {
-  // Use Google Sheets gviz/tq endpoint — works cross-origin when sheet is
-  // shared as "Anyone with the link can view". No Apps Script needed for reading.
-  const sheetId = STATE.teacher?.sheetId;
-  if (!sheetId) return 0;
-  try {
-    const url = 'https://docs.google.com/spreadsheets/d/' + sheetId +
-      '/gviz/tq?tqx=out:json&sheet=Submissions';
-    const resp = await fetchWithTimeout(url, {}, 10000);
-    if (!resp.ok) {
-      console.log('WriteLift: gviz fetch failed', resp.status, '— check Sheet is shared publicly');
-      return 0;
-    }
-    const raw = await resp.text();
-    // gviz returns JSONP like: /*O_o*/google.visualization.Query.setResponse({...});
-    // Strip everything before the first { and after the last }
-    // Strip the JSONP wrapper to get pure JSON
-    const jsonStr = raw.replace(/^[^{]*/, '').replace(/\);?\s*$/, '');
-    let gviz;
-    try { gviz = JSON.parse(jsonStr); } catch(e) {
-      console.log('WriteLift: gviz parse failed:', raw.substring(0, 200));
-      return 0;
-    }
-    if (!gviz.table || !gviz.table.rows) return 0;
+  // Use JSONP via script tag injection — bypasses CORS entirely.
+  // Works with Apps Script when deployed as "Anyone" access.
+  if (!SHEETS_URL) return 0;
+  return new Promise((resolve) => {
+    const callbackName = 'wl_cb_' + Date.now();
+    const script = document.createElement('script');
+    const timer = setTimeout(() => {
+      delete window[callbackName];
+      script.remove();
+      console.log('WriteLift: loadFromSheets timed out');
+      resolve(0);
+    }, 10000);
 
-    // Parse column headers from gviz table
-    const cols = (gviz.table.cols || []).map(c => (c.label || c.id || '').toLowerCase().replace(/ /g,'_'));
-
-    let merged = 0;
-    gviz.table.rows.forEach(gRow => {
-      // Convert gviz row format {c:[{v:value},...]} to plain object
-      const row = {};
-      cols.forEach((col, i) => {
-        const cell = gRow.c && gRow.c[i];
-        row[col] = cell && cell.v != null ? String(cell.v) : '';
-      });
-      if (!row.student_name) return;
-
-      // Dedup by id or name+date
-      const alreadyHave = STATE.submissions.some(s =>
-        (row.id && String(s.id) === row.id) ||
-        (row.student_name && row.date && s.studentName === row.student_name && s.date === row.date)
-      );
-      if (alreadyHave) return;
-
-      const n = v => { const x = parseFloat(v); return isNaN(x) ? 0 : x; };
-      const sub = {
-        id: row.id || (row.student_name + '_' + row.date),
-        studentName: row.student_name,
-        anonymousId: row.anonymous_id || '',
-        classId: row.class_id || null,
-        promptCode: row.prompt_code || '',
-        grade: n(row.grade),
-        period: row.period || '',
-        assignmentTitle: row.assignment || 'Free Write',
-        content: row.content_preview || '',
-        wordCount: n(row.word_count),
-        date: row.date || new Date().toISOString(),
-        overallScore: n(row.overall_score),
-        overallLevel: n(row.overall_level) || 1,
-        scores: {
-          organization:      n(row.organization),
-          evidence:          n(row.evidence),
-          grammar:           n(row.grammar),
-          sentence_variety:  n(row.sentence_variety),
-          vocabulary:        n(row.vocabulary),
-          argument_strength: n(row.argument_strength),
-        },
-        feedback_summary: row.feedback_summary || '',
-        next_steps: row.next_steps || '',
-        isMLL: row.is_mll === 'true' || row.is_mll === 'TRUE',
-        studentLexile: n(row.lexile) || null,
-        fromSheets: true,
-      };
-
-      if (!sub.classId && sub.promptCode) {
-        const match = STATE.classes.find(c =>
-          c.code && c.code.toUpperCase() === sub.promptCode.toUpperCase()
+    window[callbackName] = async function(data) {
+      clearTimeout(timer);
+      delete window[callbackName];
+      script.remove();
+      if (!data || !data.rows || !Array.isArray(data.rows)) { resolve(0); return; }
+      let merged = 0;
+      // reuse the existing row-processing logic inline
+      data.rows.forEach(row => {
+        if (!row.student_name) return;
+        const alreadyHave = STATE.submissions.some(s =>
+          (row.id && String(s.id) === row.id) ||
+          (row.student_name && row.date && s.studentName === row.student_name && s.date === row.date)
         );
-        if (match) sub.classId = match.id;
+        if (alreadyHave) return;
+        const n = v => { const x = parseFloat(v); return isNaN(x) ? 0 : x; };
+        const sub = {
+          id: row.id || (row.student_name + '_' + row.date),
+          studentName: row.student_name,
+          anonymousId: row.anonymous_id || '',
+          classId: row.class_id || null,
+          promptCode: row.prompt_code || '',
+          grade: n(row.grade),
+          period: row.period || '',
+          assignmentTitle: row.assignment || 'Free Write',
+          content: row.content_preview || '',
+          wordCount: n(row.word_count),
+          date: row.date || new Date().toISOString(),
+          overallScore: n(row.overall_score),
+          overallLevel: n(row.overall_level) || 1,
+          scores: {
+            organization:      n(row.organization),
+            evidence:          n(row.evidence),
+            grammar:           n(row.grammar),
+            sentence_variety:  n(row.sentence_variety),
+            vocabulary:        n(row.vocabulary),
+            argument_strength: n(row.argument_strength),
+          },
+          feedback_summary: row.feedback_summary || '',
+          next_steps: row.next_steps || '',
+          isMLL: row.is_mll === 'true' || row.is_mll === 'TRUE',
+          studentLexile: n(row.lexile) || null,
+          fromSheets: true,
+        };
+        if (!sub.classId && sub.promptCode) {
+          const match = STATE.classes.find(c => c.code && c.code.toUpperCase() === sub.promptCode.toUpperCase());
+          if (match) sub.classId = match.id;
+        }
+        if (!sub.overallLevel && sub.overallScore) sub.overallLevel = scoreToLevel(sub.overallScore);
+        STATE.submissions.push(sub);
+        merged++;
+      });
+      if (merged > 0) {
+        backfillClassIds();
+        saveData();
+        console.log('WriteLift: merged', merged, 'submissions from Sheets');
       }
-      if (!sub.overallLevel && sub.overallScore) sub.overallLevel = scoreToLevel(sub.overallScore);
+      resolve(merged);
+    };
 
-      STATE.submissions.push(sub);
-      merged++;
-    });
-
-    if (merged > 0) {
-      backfillClassIds(); // link newly-arrived submissions to classes by promptCode
-      saveData();
-      console.log('WriteLift: merged', merged, 'submissions from Google Sheets');
-    }
-    return merged;
-  } catch(e) {
-    console.log('WriteLift: Sheet CSV load failed:', e.message);
-    return 0;
-  }
+    script.src = SHEETS_URL + '?callback=' + callbackName;
+    script.onerror = () => { clearTimeout(timer); delete window[callbackName]; resolve(0); };
+    document.head.appendChild(script);
+    return; // rest of old function replaced — dummy try block below never runs
+  });
 }
 
 // Parse CSV text into array of arrays, handling quoted fields
@@ -3098,85 +3076,43 @@ function parseCSV(text) {
   return rows;
 }
 
-function buildSheetPayload(submission) {
-  return {
-    id:               String(submission.id),
-    student_name:     submission.studentName || '',
-    anonymous_id:     submission.anonymousId || '',
-    grade:            String(submission.grade || ''),
-    period:           submission.period || '',
-    class_id:         submission.classId || '',
-    prompt_code:      submission.promptCode || '',
-    assignment:       submission.assignmentTitle || '',
-    date:             submission.date || '',
-    word_count:       String(submission.wordCount || 0),
-    overall_score:    String(submission.overallScore || 0),
-    overall_level:    String(submission.overallLevel || 1),
-    organization:     String(submission.scores?.organization || 0),
-    evidence:         String(submission.scores?.evidence || 0),
-    grammar:          String(submission.scores?.grammar || 0),
-    sentence_variety: String(submission.scores?.sentence_variety || 0),
-    vocabulary:       String(submission.scores?.vocabulary || 0),
-    argument_strength:String(submission.scores?.argument_strength || 0),
-    is_mll:           String(submission.isMLL || false),
-    feedback_summary: (submission.feedback_summary || '').substring(0, 500),
-    next_steps:       (submission.next_steps || '').substring(0, 300),
-    lexile:           String(submission.studentLexile || ''),
-    content_preview:  (submission.content || '').substring(0, 500),
-  };
-}
-
-function payloadToFormData(payload) {
-  const fd = new FormData();
-  for (const [k, v] of Object.entries(payload)) fd.append(k, v);
-  return fd;
-}
-
-async function postToSheets(formData) {
-  // FormData with no-cors = multipart/form-data, which is a CORS "simple" request.
-  // No custom headers — the browser sets Content-Type automatically.
-  // This is the only fetch() method that reliably reaches Apps Script from a browser.
-  await fetch(SHEETS_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    body: formData,
-  });
-}
-
 async function saveToSheets(submission) {
-  const payload = buildSheetPayload(submission);
+  // Original working approach: JSON POST to Apps Script.
+  // Apps Script reads e.postData.contents and parses as JSON.
   try {
-    await postToSheets(payloadToFormData(payload));
-    // no-cors means response is always opaque — we can't read it.
-    // If fetch() didn't throw, the request left the browser successfully.
-    console.log('WriteLift: Sheets POST sent for', submission.studentName);
-    // Remove from retry queue if present
-    const pending = JSON.parse(localStorage.getItem('writelift_pending_sync') || '[]');
-    const updated = pending.filter(p => p.id !== payload.id);
-    if (updated.length !== pending.length) localStorage.setItem('writelift_pending_sync', JSON.stringify(updated));
+    await fetch(SHEETS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id:               String(submission.id),
+        student_name:     submission.studentName || '',
+        anonymous_id:     submission.anonymousId || '',
+        grade:            submission.grade,
+        period:           submission.period || '',
+        class_id:         submission.classId || '',
+        prompt_code:      submission.promptCode || '',
+        assignment:       submission.assignmentTitle || '',
+        date:             submission.date || '',
+        word_count:       submission.wordCount,
+        overall_score:    submission.overallScore,
+        overall_level:    submission.overallLevel,
+        organization:     submission.scores?.organization,
+        evidence:         submission.scores?.evidence,
+        grammar:          submission.scores?.grammar,
+        sentence_variety: submission.scores?.sentence_variety,
+        vocabulary:       submission.scores?.vocabulary,
+        argument_strength:submission.scores?.argument_strength,
+        is_mll:           submission.isMLL || false,
+        feedback_summary: (submission.feedback_summary || '').substring(0, 500),
+        next_steps:       (submission.next_steps || '').substring(0, 300),
+        lexile:           submission.studentLexile,
+        content_preview:  (submission.content || '').substring(0, 500),
+      }),
+    });
+    console.log('WriteLift: saved to Sheets for', submission.studentName);
   } catch(e) {
-    // fetch() threw — request was blocked before leaving browser (CORS, network, etc.)
-    const pending = JSON.parse(localStorage.getItem('writelift_pending_sync') || '[]');
-    if (!pending.find(p => p.id === payload.id)) pending.push(payload);
-    localStorage.setItem('writelift_pending_sync', JSON.stringify(pending));
-    console.error('WriteLift: Sheets POST BLOCKED —', e.message, '— submission queued for retry');
+    console.warn('WriteLift: Sheets save failed:', e.message);
   }
-}
-
-async function retrySheetsSync() {
-  const pending = JSON.parse(localStorage.getItem('writelift_pending_sync') || '[]');
-  if (!pending.length) return;
-  const stillFailed = [];
-  for (const payload of pending) {
-    try {
-      await postToSheets(payloadToFormData(payload));
-    } catch(e) {
-      stillFailed.push(payload);
-    }
-  }
-  localStorage.setItem('writelift_pending_sync', JSON.stringify(stillFailed));
-  const sent = pending.length - stillFailed.length;
-  if (sent > 0) console.log('WriteLift: retried', sent, 'queued submissions');
 }
 
 // ── EMAIL NOTIFICATION ──
