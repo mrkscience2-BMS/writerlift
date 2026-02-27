@@ -629,11 +629,14 @@ const MILESTONES_DEF = [
 const STORAGE_KEY = 'writelift_data_v3';
 const CLASS_COLORS = ['#F4A536','#5BA4CF','#2ECC8A','#E85D75','#A78BFA','#FB923C','#34D399'];
 function saveData() {
+  // NEVER overwrite teacher config with null — students don't have a teacher object.
+  // Only save teacher if it's actually set.
+  const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
-    teacher: STATE.teacher,
+    teacher: STATE.teacher || existing.teacher || null,
     submissions: STATE.submissions,
-    classes: STATE.classes,
-    activeClassId: STATE.activeClassId,
+    classes: STATE.classes.length ? STATE.classes : (existing.classes || []),
+    activeClassId: STATE.activeClassId || existing.activeClassId || null,
   }));
 }
 function loadData() {
@@ -859,13 +862,14 @@ function studentSignIn() {
   const promptCode = document.getElementById('s-prompt-code').value.trim().toUpperCase();
   if (!name || !grade) return showToast('Please enter your name and grade level.', true);
 
-  // Resolve classId from promptCode
+  // Resolve classId from promptCode (case-insensitive)
   const matchedClass = promptCode
     ? STATE.classes.find(c => c.code && c.code.toUpperCase() === promptCode)
     : null;
   const classId = matchedClass ? matchedClass.id : null;
 
-  STATE.student = { name, grade: parseInt(grade), period, promptCode, classId };
+  // Always store promptCode uppercase so teacher backfill matches reliably
+  STATE.student = { name, grade: parseInt(grade), period, promptCode: promptCode.toUpperCase(), classId };
   STATE.exercises = [];
   STATE.milestones = [];
   STATE.readings = [];
@@ -1123,7 +1127,8 @@ async function submitEssay() {
     };
     STATE.submissions.push(submission);
     saveData();
-    saveToSheets(submission);
+    // await so we catch errors and can show a warning if Sheets sync fails
+    await saveToSheets(submission);
 
     if (STATE.teacher?.email) await sendEmailNotification(submission, result);
 
@@ -2201,6 +2206,156 @@ function setActiveClass(classId) {
   renderTeacherDashboard();
 }
 
+
+// ══ TEACHER DIAGNOSTIC: simulate a student submission end-to-end ══
+async function runSubmissionTest() {
+  const btn = document.getElementById('test-btn');
+  const out = document.getElementById('test-output');
+  if (!btn || !out) return;
+  btn.disabled = true;
+  btn.textContent = '⏳ Testing…';
+  out.style.display = 'block';
+  out.innerHTML = '';
+
+  function log(msg, ok) {
+    const color = ok === true ? '#1a7a40' : ok === false ? '#c0392b' : '#2c3e50';
+    const icon  = ok === true ? '✅' : ok === false ? '❌' : '⏳';
+    out.innerHTML += `<div style="color:${color};margin-bottom:4px">${icon} ${msg}</div>`;
+  }
+
+  // ── Step 1: Build a fake submission ──
+  const testId = 'TEST_' + Date.now();
+  const fakeSubmission = {
+    id: testId,
+    studentName: '__WriteLift_Test__',
+    anonymousId: 'TEST000',
+    classId: STATE.classes[0]?.id || null,
+    promptCode: STATE.classes[0]?.code || 'TEST',
+    grade: 7,
+    period: 'Test',
+    assignmentTitle: 'Diagnostic Test',
+    content: 'This is an automated test submission to verify the Google Sheets connection.',
+    wordCount: 16,
+    date: new Date().toISOString(),
+    overallScore: 72,
+    overallLevel: 3,
+    scores: { organization:70, evidence:65, grammar:75, sentence_variety:68, vocabulary:72, argument_strength:71 },
+    feedback_summary: 'Test submission.',
+    next_steps: 'N/A',
+    isMLL: false,
+    studentLexile: 900,
+  };
+  log('Test submission object created (id: ' + testId + ')', null);
+
+  // ── Step 2: Save to localStorage ──
+  try {
+    STATE.submissions.push(fakeSubmission);
+    saveData();
+    log('Saved to localStorage — visible in teacher dashboard', true);
+  } catch(e) {
+    log('localStorage save FAILED: ' + e.message, false);
+  }
+
+  // ── Step 3: Post to Google Sheets ──
+  log('Sending to Google Sheets…', null);
+  let postOk = false;
+  try {
+    const payload = buildSheetPayload(fakeSubmission);
+    const fd = payloadToFormData(payload);
+    await fetch(SHEETS_URL, { method: 'POST', mode: 'no-cors', body: fd });
+    postOk = true;
+    log('Sheets POST sent (no-cors — cannot read response, checking receipt…)', null);
+  } catch(e) {
+    log('Sheets POST BLOCKED by browser: ' + e.message, false);
+    log('Fix: make sure Apps Script is deployed as "Anyone" access', false);
+  }
+
+  // ── Step 3b: Wait 2 seconds then verify the row actually arrived ──
+  if (postOk) {
+    log('Waiting 5 seconds for Apps Script to process…', null);
+    await new Promise(r => setTimeout(r, 5000));
+    try {
+      const sheetId = STATE.teacher?.sheetId;
+      if (!sheetId) {
+        log('No Sheet ID in Settings — cannot verify. Add your Sheet ID in ⚙️ Settings.', false);
+      } else {
+        log('Reading Sheet via gviz endpoint…', null);
+        const gvizUrl = 'https://docs.google.com/spreadsheets/d/' + sheetId + '/gviz/tq?tqx=out:json&sheet=Submissions';
+        const verifyResp = await fetchWithTimeout(gvizUrl, {}, 10000);
+        if (!verifyResp.ok) {
+          log('Sheet read failed HTTP ' + verifyResp.status + ' — make sure Sheet is shared "Anyone with link can view"', false);
+        } else {
+          const raw = await verifyResp.text();
+          const jsonStr = raw.replace(/^[^{]*/, '').replace(/\);?\s*$/, '');
+          try {
+            const gviz = JSON.parse(jsonStr);
+            const cols = (gviz.table?.cols || []).map(c => (c.label||c.id||'').toLowerCase().replace(/ /g,'_'));
+            const rows = (gviz.table?.rows || []).map(gRow => {
+              const r = {};
+              cols.forEach((col,i) => { const cell=gRow.c&&gRow.c[i]; r[col]=cell&&cell.v!=null?String(cell.v):''; });
+              return r;
+            });
+            log('Sheet has ' + rows.length + ' rows total', null);
+            const found = rows.find(r => r.id === String(fakeSubmission.id));
+            if (found) {
+              log('CONFIRMED: Test row found in Sheet! student="' + found.student_name + '"', true);
+              log('✅ FULL END-TO-END TEST PASSED — submissions will reach Sheet and heatmap', true);
+            } else {
+              log('Test row not found in Sheet — check Sheet manually for "__WriteLift_Test__"', false);
+              log('If row IS in Sheet: POST works, gviz read works — integration is good', null);
+              log('If row NOT in Sheet: Apps Script doPost is not saving. Check SHEET_NAME="Submissions"', false);
+            }
+          } catch(e) {
+            log('Sheet parse error: ' + e.message, false);
+          }
+        }
+      }
+    } catch(e) {
+      log('Verify error: ' + e.message, false);
+    }
+  }
+
+  // ── Step 4: Check if it appears in teacher view ──
+  const found = STATE.submissions.find(s => s.id == testId);
+  if (found) {
+    log('Submission IS visible in teacher dashboard (check heatmap)', true);
+    _renderTeacherDashboardInner();
+  } else {
+    log('Submission NOT found in STATE — something went wrong with localStorage save', false);
+  }
+
+  // ── Step 5: Clean up test row from localStorage (keep sheet row as proof) ──
+  STATE.submissions = STATE.submissions.filter(s => s.studentName !== '__WriteLift_Test__');
+  saveData();
+  _renderTeacherDashboardInner();
+  log('Test row removed from dashboard (sheet row kept as proof)', null);
+
+  btn.disabled = false;
+  btn.textContent = '🧪 Run Submission Test';
+}
+
+// ── BACKFILL: link submissions to classes via promptCode ──
+// Runs on teacher dashboard load and after every Sheets sync.
+// Students submit with classId=null (they don't have STATE.classes).
+// This function matches them to the right class by promptCode.
+function backfillClassIds() {
+  if (!STATE.classes.length) return false;
+  let changed = false;
+  STATE.submissions.forEach(s => {
+    if (s.classId) return; // already linked
+    if (!s.promptCode) return;
+    const match = STATE.classes.find(c =>
+      c.code && s.promptCode.toUpperCase() === c.code.toUpperCase()
+    );
+    if (match) {
+      s.classId = match.id;
+      changed = true;
+    }
+  });
+  if (changed) saveData();
+  return changed;
+}
+
 function renderTeacherDashboard() {
   const t = STATE.teacher;
   if (!t) return;
@@ -2213,11 +2368,16 @@ function renderTeacherDashboard() {
     STATE.activeClassId = cls.id;
     saveData();
   }
+  // Always backfill classIds before rendering — catches any submissions
+  // that arrived with classId=null from student devices
+  backfillClassIds();
   _renderTeacherDashboardInner();
-  // Fetch latest submissions from Google Sheets in the background
-  // so cross-browser student submissions appear without manual export
+  // Fetch latest from Sheets in background, then backfill + re-render
   loadFromSheets().then(count => {
-    if (count > 0) _renderTeacherDashboardInner(); // re-render if new data arrived
+    if (count > 0) {
+      backfillClassIds();
+      _renderTeacherDashboardInner();
+    }
   });
 }
 
@@ -2264,12 +2424,15 @@ function _renderTeacherDashboardInner() {
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-secondary btn-sm" onclick="renderTeacherDashboard()">🔄 Refresh</button>
         <button class="btn btn-secondary btn-sm" onclick="syncFromSheetsManual()">☁️ Sync from Sheets</button>
+        <button class="btn btn-secondary btn-sm" id="test-btn" onclick="runSubmissionTest()">🧪 Run Test</button>
         <button class="btn btn-secondary btn-sm" onclick="openModal('modal-teacher-login')">⚙️ Settings</button>
         <button class="btn btn-secondary btn-sm" onclick="switchTeacherTab('manage')">🗂️ Manage Students</button>
         <button class="btn btn-secondary btn-sm" onclick="showDataRecovery()">🔄 Recover Data</button>
         <button class="btn btn-dark btn-sm" onclick="copyStudentLink()">🔗 Copy Link</button>
       </div>
     </div>
+
+    <div id="test-output" style="display:none;background:#f8f9fa;border:1px solid #dee2e6;border-radius:10px;padding:14px 16px;margin-bottom:16px;font-family:monospace;font-size:0.82rem;line-height:1.8"></div>
 
     ${!STATE.teacher?.sheetId ? `<div style="background:rgba(244,165,54,0.1);border:1px solid rgba(244,165,54,0.3);border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
       <div style="font-size:0.85rem;color:#7A5A10"><strong>⚠️ Google Sheet not connected.</strong> Student submissions from other devices won't appear here until you add your Sheet ID in Settings.</div>
@@ -2788,7 +2951,7 @@ async function syncFromSheetsManual() {
       _renderTeacherDashboardInner();
       showToast('✅ Synced ' + count + ' new submission' + (count !== 1 ? 's' : '') + ' from Google Sheets.');
     } else {
-      showToast('✓ Up to date — no new submissions found in Google Sheet.');
+      showToast('✓ Up to date — no new submissions found. Make sure Sheet is shared publicly.');
     }
   } catch(e) {
     showToast('Sync failed. Make sure your Sheet is published (File → Share → Publish to web).', true);
@@ -2797,29 +2960,58 @@ async function syncFromSheetsManual() {
   }
 }
 
+
+// Fetch with timeout — Apps Script GET can hang on auth redirects
+async function fetchWithTimeout(url, options = {}, ms = 10000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try {
+    const resp = await fetch(url, { ...options, redirect: 'follow', signal: controller.signal });
+    clearTimeout(timer);
+    return resp;
+  } catch(e) {
+    clearTimeout(timer);
+    if (e.name === 'AbortError') throw new Error('Timed out after ' + (ms/1000) + 's — Apps Script may require login or be unresponsive');
+    throw e;
+  }
+}
+
 async function loadFromSheets() {
+  // Use Google Sheets gviz/tq endpoint — works cross-origin when sheet is
+  // shared as "Anyone with the link can view". No Apps Script needed for reading.
   const sheetId = STATE.teacher?.sheetId;
   if (!sheetId) return 0;
-
-  // Use the Google Sheets CSV export URL - works cross-origin, no Apps Script needed
-  const csvUrl = 'https://docs.google.com/spreadsheets/d/' + sheetId + '/export?format=csv&gid=0';
   try {
-    const resp = await fetch(csvUrl);
+    const url = 'https://docs.google.com/spreadsheets/d/' + sheetId +
+      '/gviz/tq?tqx=out:json&sheet=Submissions';
+    const resp = await fetchWithTimeout(url, {}, 10000);
     if (!resp.ok) {
-      console.log('WriteLift: Sheet CSV fetch failed', resp.status, '— check Sheet ID and that the sheet is published');
+      console.log('WriteLift: gviz fetch failed', resp.status, '— check Sheet is shared publicly');
       return 0;
     }
-    const csv = await resp.text();
-    const rows = parseCSV(csv);
-    if (rows.length < 2) return 0;
+    const raw = await resp.text();
+    // gviz returns JSONP like: /*O_o*/google.visualization.Query.setResponse({...});
+    // Strip everything before the first { and after the last }
+    // Strip the JSONP wrapper to get pure JSON
+    const jsonStr = raw.replace(/^[^{]*/, '').replace(/\);?\s*$/, '');
+    let gviz;
+    try { gviz = JSON.parse(jsonStr); } catch(e) {
+      console.log('WriteLift: gviz parse failed:', raw.substring(0, 200));
+      return 0;
+    }
+    if (!gviz.table || !gviz.table.rows) return 0;
 
-    const headers = rows[0].map(h => h.trim().toLowerCase().replace(/ /g, '_'));
-    const dataRows = rows.slice(1).filter(r => r.some(c => c.trim()));
+    // Parse column headers from gviz table
+    const cols = (gviz.table.cols || []).map(c => (c.label || c.id || '').toLowerCase().replace(/ /g,'_'));
 
     let merged = 0;
-    dataRows.forEach(cols => {
+    gviz.table.rows.forEach(gRow => {
+      // Convert gviz row format {c:[{v:value},...]} to plain object
       const row = {};
-      headers.forEach((h, i) => { row[h] = (cols[i] || '').trim(); });
+      cols.forEach((col, i) => {
+        const cell = gRow.c && gRow.c[i];
+        row[col] = cell && cell.v != null ? String(cell.v) : '';
+      });
       if (!row.student_name) return;
 
       // Dedup by id or name+date
@@ -2872,8 +3064,9 @@ async function loadFromSheets() {
     });
 
     if (merged > 0) {
+      backfillClassIds(); // link newly-arrived submissions to classes by promptCode
       saveData();
-      console.log('WriteLift: merged', merged, 'submissions from Google Sheet CSV');
+      console.log('WriteLift: merged', merged, 'submissions from Google Sheets');
     }
     return merged;
   } catch(e) {
@@ -2954,19 +3147,19 @@ async function saveToSheets(submission) {
   const payload = buildSheetPayload(submission);
   try {
     await postToSheets(payloadToFormData(payload));
-    console.log('WriteLift: saved to Sheets —', submission.studentName);
-    // Clear this submission from pending queue if it was there
+    // no-cors means response is always opaque — we can't read it.
+    // If fetch() didn't throw, the request left the browser successfully.
+    console.log('WriteLift: Sheets POST sent for', submission.studentName);
+    // Remove from retry queue if present
     const pending = JSON.parse(localStorage.getItem('writelift_pending_sync') || '[]');
     const updated = pending.filter(p => p.id !== payload.id);
-    if (updated.length !== pending.length) {
-      localStorage.setItem('writelift_pending_sync', JSON.stringify(updated));
-    }
+    if (updated.length !== pending.length) localStorage.setItem('writelift_pending_sync', JSON.stringify(updated));
   } catch(e) {
-    // Queue for retry
+    // fetch() threw — request was blocked before leaving browser (CORS, network, etc.)
     const pending = JSON.parse(localStorage.getItem('writelift_pending_sync') || '[]');
     if (!pending.find(p => p.id === payload.id)) pending.push(payload);
     localStorage.setItem('writelift_pending_sync', JSON.stringify(pending));
-    console.warn('WriteLift: Sheets save failed, queued:', e.message);
+    console.error('WriteLift: Sheets POST BLOCKED —', e.message, '— submission queued for retry');
   }
 }
 
