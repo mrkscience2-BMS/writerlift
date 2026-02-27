@@ -97,7 +97,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--navy);
 .panel-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:12px}
 
 /* ── STUDENT APP ── */
-#screen-student{height:100vh;display:flex;flex-direction:column;background:var(--cream)}
 .student-layout{display:flex;flex:1;overflow:hidden;height:calc(100vh - 0px)}
 .sidebar{width:220px;min-width:220px;background:var(--navy);padding:24px 0;display:flex;flex-direction:column;gap:4px;overflow-y:auto}
 .sidebar-logo{padding:0 20px 20px;font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;color:var(--white);border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:8px;transition:opacity 0.15s}
@@ -274,7 +273,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--navy);
 .hc-feedback-item:last-child{border-bottom:none}
 
 /* ── TEACHER DASHBOARD ── */
-#screen-teacher{height:100vh;overflow-y:auto;background:var(--cream)}
 .topnav{background:var(--navy);padding:0 28px;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;box-shadow:0 2px 12px rgba(15,43,70,0.18)}
 .nav-brand{display:flex;align-items:center;gap:10px;font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;color:var(--white);cursor:pointer;user-select:none;transition:opacity 0.15s}
 .nav-brand:hover{opacity:0.75}
@@ -284,6 +282,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--navy);
 .btn-nav{background:rgba(255,255,255,0.09);color:var(--white);border:1px solid rgba(255,255,255,0.18);padding:6px 14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:0.8rem;cursor:pointer;transition:all 0.15s;white-space:nowrap}
 .btn-nav:hover{background:rgba(255,255,255,0.18);border-color:rgba(255,255,255,0.35)}
 .btn-nav.btn-sm{padding:5px 11px;font-size:0.75rem}
+.teacher-main{padding:28px 32px;max-width:1200px;margin:0 auto}
+/* ── TEACHER SIDEBAR LAYOUT ── */
+#screen-teacher{height:100vh;background:var(--cream)}
+.teacher-layout{display:flex;width:100%;height:100vh;overflow:hidden}
+.teacher-sidebar{width:200px;min-width:200px;background:var(--navy);padding:24px 0;display:flex;flex-direction:column;gap:4px;overflow-y:auto;flex-shrink:0}
+.teacher-sidebar-logo{padding:0 20px 20px;font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;color:var(--white);border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:8px;cursor:pointer;transition:opacity 0.15s}
+.teacher-sidebar-logo:hover{opacity:0.75}
+.teacher-sidebar-logo span{color:var(--amber)}
+.teacher-sidebar-user{padding:10px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:8px}
+.teacher-sidebar-name{font-size:0.8rem;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.teacher-sidebar-sub{font-size:0.7rem;color:rgba(255,255,255,0.5);margin-top:2px}
+.tnav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:0.875rem;font-weight:500;color:rgba(255,255,255,0.65);cursor:pointer;transition:all 0.15s;position:relative;white-space:nowrap}
+.tnav-item:hover{background:rgba(255,255,255,0.06);color:var(--white)}
+.tnav-item.active{background:rgba(244,165,54,0.15);color:var(--amber);font-weight:600}
+.tnav-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--amber);border-radius:0 2px 2px 0}
+.tnav-icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+.tnav-divider{height:1px;background:rgba(255,255,255,0.08);margin:8px 20px}
+.teacher-content{flex:1;overflow-y:auto;background:var(--cream)}
 .teacher-main{padding:28px 32px;max-width:1200px;margin:0 auto}
 .class-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;align-items:center}
 .class-pill{padding:0.38rem 1rem;border-radius:100px;font-size:0.8rem;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--white);color:#6B8299;transition:all 0.2s;display:flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif}
@@ -561,18 +577,27 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--navy);
 
 <!-- TEACHER SCREEN -->
 <div class="screen" id="screen-teacher">
-  <div class="topnav">
-    <div class="nav-brand" onclick="showScreen('landing')" title="Return to home">
-      <div class="nav-mark">W</div> WriteLift AI
+  <div style="display:flex;height:100vh;overflow:hidden;background:var(--cream)">
+    <!-- Left Sidebar -->
+    <nav style="width:200px;min-width:200px;background:var(--navy);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0">
+      <div onclick="showScreen('landing')" style="padding:20px 20px 18px;font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;color:var(--white);border-bottom:1px solid rgba(255,255,255,0.1);cursor:pointer;margin-bottom:8px">Write<span style="color:var(--amber)">Lift</span></div>
+      <div style="padding:10px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:8px">
+        <div id="t-sidebar-name" style="font-size:0.8rem;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Teacher</div>
+        <div id="t-sidebar-class" style="font-size:0.7rem;color:rgba(255,255,255,0.5);margin-top:2px">—</div>
+      </div>
+      <div id="tnav-overview" onclick="switchTeacherTab('overview')" style="display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:0.875rem;font-weight:600;color:var(--amber);cursor:pointer;background:rgba(244,165,54,0.15);border-left:3px solid var(--amber)"><span style="width:20px;text-align:center">📊</span> Dashboard</div>
+      <div id="tnav-manage" onclick="switchTeacherTab('manage')" style="display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:0.875rem;font-weight:500;color:rgba(255,255,255,0.65);cursor:pointer"><span style="width:20px;text-align:center">🗂️</span> Students</div>
+      <div style="height:1px;background:rgba(255,255,255,0.08);margin:8px 20px"></div>
+      <div onclick="syncFromSheetsManual()" style="display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:0.875rem;font-weight:500;color:rgba(255,255,255,0.65);cursor:pointer"><span style="width:20px;text-align:center">☁️</span> Sync</div>
+      <div onclick="exportCSV()" style="display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:0.875rem;font-weight:500;color:rgba(255,255,255,0.65);cursor:pointer"><span style="width:20px;text-align:center">⬇️</span> Export</div>
+      <div onclick="openModal('modal-teacher-login')" style="display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:0.875rem;font-weight:500;color:rgba(255,255,255,0.65);cursor:pointer"><span style="width:20px;text-align:center">⚙️</span> Settings</div>
+      <div style="height:1px;background:rgba(255,255,255,0.08);margin:8px 20px"></div>
+      <div onclick="showScreen('landing')" style="display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:0.875rem;font-weight:500;color:rgba(255,255,255,0.65);cursor:pointer"><span style="width:20px;text-align:center">←</span> Exit</div>
+    </nav>
+    <!-- Main Content -->
+    <div style="flex:1;overflow-y:auto">
+      <div class="teacher-main" id="teacher-main-content"></div>
     </div>
-    <div class="nav-right">
-      <div class="nav-user">Teacher View — <span id="t-class-display">—</span></div>
-      <button class="btn-nav btn-sm" onclick="exportCSV()" style="margin-right:4px">⬇ Export</button>
-      <button class="btn-nav" onclick="showScreen('landing')">← Exit</button>
-    </div>
-  </div>
-  <div class="teacher-main" id="teacher-main-content">
-    <!-- Content injected by JS -->
   </div>
 </div>
 
@@ -2358,6 +2383,11 @@ function renderTeacherDashboard() {
   if (!t) return;
   const container = document.getElementById('teacher-main-content');
   if (!container) return;
+  // Update sidebar user info
+  const sName = document.getElementById('t-sidebar-name');
+  const sClass = document.getElementById('t-sidebar-class');
+  if (sName) sName.textContent = t.email || 'Teacher';
+  if (sClass) sClass.textContent = t.className || '—';
   // Ensure at least one class exists
   if (STATE.classes.length === 0 && t.className) {
     const cls = { id: 'class_' + Date.now(), name: t.className, grade: t.grade || 7, prompt: t.prompt || '', code: t.code || '', color: CLASS_COLORS[0] };
@@ -2382,7 +2412,7 @@ function _renderTeacherDashboardInner() {
   const t = STATE.teacher;
   if (!t) return;
   const activeClass = getActiveClass();
-  document.getElementById('t-class-display').textContent = activeClass ? activeClass.name : 'All Classes';
+  // sidebar class display updated via renderTeacherDashboard()
   const mySubs = getFilteredSubs();
   const students = [...new Set(mySubs.map(s => s.studentName))];
   const avgScore = mySubs.length ? Math.round(mySubs.reduce((a,b) => a+(b.overallScore||0),0)/mySubs.length) : 0;
@@ -2416,15 +2446,11 @@ function _renderTeacherDashboardInner() {
       <div>
         <h1 class="t-title">📊 ${activeClass ? activeClass.name : 'All Classes'}</h1>
         <p class="t-sub">${t.email} · ${mySubs.length} submissions · ${students.length} students</p>
-        <p style="font-size:0.72rem;color:#6B8299;margin-top:2px">🔒 Student names are anonymized before AI processing. Real names are stored only here and in your Google Sheet.</p>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-secondary btn-sm" onclick="renderTeacherDashboard()">🔄 Refresh</button>
-        <button class="btn btn-secondary btn-sm" onclick="syncFromSheetsManual()">☁️ Sync from Sheets</button>
-        <button class="btn btn-secondary btn-sm" id="test-btn" onclick="runSubmissionTest()">🧪 Run Test</button>
-        <button class="btn btn-secondary btn-sm" onclick="openModal('modal-teacher-login')">⚙️ Settings</button>
-        <button class="btn btn-secondary btn-sm" onclick="switchTeacherTab('manage')">🗂️ Manage Students</button>
-        <button class="btn btn-secondary btn-sm" onclick="showDataRecovery()">🔄 Recover Data</button>
+        <button class="btn btn-secondary btn-sm" id="test-btn" onclick="runSubmissionTest()">🧪 Test</button>
+        <button class="btn btn-secondary btn-sm" onclick="showDataRecovery()">🔄 Recover</button>
         <button class="btn btn-dark btn-sm" onclick="copyStudentLink()">🔗 Copy Link</button>
       </div>
     </div>
@@ -2523,6 +2549,22 @@ function _renderTeacherDashboardInner() {
 }
 
 function switchTeacherTab(tab) {
+  // Update sidebar active state using inline styles (no CSS class dependency)
+  ['overview','manage'].forEach(t => {
+    const el = document.getElementById('tnav-' + t);
+    if (!el) return;
+    if (t === tab) {
+      el.style.color = 'var(--amber)';
+      el.style.fontWeight = '600';
+      el.style.background = 'rgba(244,165,54,0.15)';
+      el.style.borderLeft = '3px solid var(--amber)';
+    } else {
+      el.style.color = 'rgba(255,255,255,0.65)';
+      el.style.fontWeight = '500';
+      el.style.background = 'transparent';
+      el.style.borderLeft = 'none';
+    }
+  });
   const ov = document.getElementById('t-tab-overview');
   const mg = document.getElementById('t-tab-manage');
   if (ov) ov.style.display = tab === 'overview' ? 'block' : 'none';
