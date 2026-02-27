@@ -3077,41 +3077,43 @@ function parseCSV(text) {
 }
 
 async function saveToSheets(submission) {
-  // Original working approach: JSON POST to Apps Script.
-  // Apps Script reads e.postData.contents and parses as JSON.
+  // CORS-safe POST to Apps Script.
+  // Sending JSON as text/plain (no Content-Type header) avoids CORS preflight.
+  // Apps Script receives the body in e.postData.contents and parses as JSON.
+  const data = {
+    id:               String(submission.id),
+    student_name:     submission.studentName || '',
+    anonymous_id:     submission.anonymousId || '',
+    grade:            String(submission.grade || ''),
+    period:           submission.period || '',
+    class_id:         submission.classId || '',
+    prompt_code:      submission.promptCode || '',
+    assignment:       submission.assignmentTitle || '',
+    date:             submission.date || '',
+    word_count:       String(submission.wordCount || 0),
+    overall_score:    String(submission.overallScore || 0),
+    overall_level:    String(submission.overallLevel || 1),
+    organization:     String(submission.scores?.organization || 0),
+    evidence:         String(submission.scores?.evidence || 0),
+    grammar:          String(submission.scores?.grammar || 0),
+    sentence_variety: String(submission.scores?.sentence_variety || 0),
+    vocabulary:       String(submission.scores?.vocabulary || 0),
+    argument_strength:String(submission.scores?.argument_strength || 0),
+    is_mll:           String(submission.isMLL || false),
+    feedback_summary: (submission.feedback_summary || '').substring(0, 500),
+    next_steps:       (submission.next_steps || '').substring(0, 300),
+    lexile:           String(submission.studentLexile || ''),
+    content_preview:  (submission.content || '').substring(0, 500),
+  };
   try {
+    // No Content-Type header = browser sends as text/plain = CORS simple request = no preflight
     await fetch(SHEETS_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id:               String(submission.id),
-        student_name:     submission.studentName || '',
-        anonymous_id:     submission.anonymousId || '',
-        grade:            submission.grade,
-        period:           submission.period || '',
-        class_id:         submission.classId || '',
-        prompt_code:      submission.promptCode || '',
-        assignment:       submission.assignmentTitle || '',
-        date:             submission.date || '',
-        word_count:       submission.wordCount,
-        overall_score:    submission.overallScore,
-        overall_level:    submission.overallLevel,
-        organization:     submission.scores?.organization,
-        evidence:         submission.scores?.evidence,
-        grammar:          submission.scores?.grammar,
-        sentence_variety: submission.scores?.sentence_variety,
-        vocabulary:       submission.scores?.vocabulary,
-        argument_strength:submission.scores?.argument_strength,
-        is_mll:           submission.isMLL || false,
-        feedback_summary: (submission.feedback_summary || '').substring(0, 500),
-        next_steps:       (submission.next_steps || '').substring(0, 300),
-        lexile:           submission.studentLexile,
-        content_preview:  (submission.content || '').substring(0, 500),
-      }),
+      body: JSON.stringify(data),
     });
-    console.log('WriteLift: saved to Sheets for', submission.studentName);
+    console.log('WriteLift: Sheets POST sent for', submission.studentName);
   } catch(e) {
-    console.warn('WriteLift: Sheets save failed:', e.message);
+    console.warn('WriteLift: Sheets POST failed:', e.message);
   }
 }
 
