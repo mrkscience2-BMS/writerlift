@@ -3060,7 +3060,8 @@ async function loadFromSheets() {
         if (alreadyHave) return;
 
         const n = v => { const x = parseFloat(v); return isNaN(x) ? 0 : x; };
-        // Use 'essay' column for full text, fall back to content_preview
+        // Support both old column names (class_code, sentences, argument, essay)
+        // and new column names (prompt_code, sentence_variety, argument_strength, content_preview)
         const fullContent = row.essay || row.content || row.content_preview || '';
         const sub = {
           id: row.id || (realName + '_' + row.date),
@@ -3080,9 +3081,9 @@ async function loadFromSheets() {
             organization:      n(row.organization),
             evidence:          n(row.evidence),
             grammar:           n(row.grammar),
-            sentence_variety:  n(row.sentence_variety) || n(row.sentences),
+            sentence_variety:  n(row.sentence_variety) || n(row.sentences) || 0,
             vocabulary:        n(row.vocabulary),
-            argument_strength: n(row.argument_strength) || n(row.argument),
+            argument_strength: n(row.argument_strength) || n(row.argument) || 0,
           },
           feedback_summary: row.feedback_summary || '',
           next_steps: row.next_steps || '',
@@ -3098,6 +3099,22 @@ async function loadFromSheets() {
         STATE.submissions.push(sub);
         merged++;
       });
+      // Also fix any local submissions that have anonymized studentName
+      // by matching against sheet rows that have the real name
+      data.rows.forEach(row => {
+        const realName = row.student_name;
+        if (!realName || /^Student_[A-Z0-9]{4,8}$/.test(realName)) return;
+        STATE.submissions.forEach(s => {
+          if (/^Student_[A-Z0-9]{4,8}$/.test(s.studentName)) {
+            // Match by id or anonymous_id
+            if ((row.id && String(s.id) === row.id) || (s.anonymousId && s.anonymousId === row.anonymous_id)) {
+              s.studentName = realName;
+              merged = merged || 1; // ensure saveData is called
+            }
+          }
+        });
+      });
+
       if (merged > 0) {
         backfillClassIds();
         saveData();
