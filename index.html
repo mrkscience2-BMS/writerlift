@@ -2776,7 +2776,7 @@ function viewSubmission(id) {
     <h2 class="modal-title" style="margin-bottom:4px">${sub.studentName}${mllTag}</h2>
     <p class="modal-sub">Grade ${sub.grade}${sub.period ? ' · ' + sub.period : ''} · ${new Date(sub.date).toLocaleString()} · ${sub.wordCount} words</p>
 
-    <div style="background:var(--cream);border-radius:10px;padding:16px;margin-bottom:16px;font-size:0.875rem;line-height:1.75;max-height:220px;overflow-y:auto;color:var(--navy);white-space:pre-wrap;border:1px solid var(--border)">${sub.content}</div>
+    <div style="background:var(--cream);border-radius:10px;padding:16px;margin-bottom:16px;font-size:0.875rem;line-height:1.75;max-height:300px;overflow-y:auto;color:var(--navy);white-space:pre-wrap;border:1px solid var(--border)">${sub.content || ''}</div>
 
     <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:14px;flex-wrap:wrap">
       <div style="text-align:center;min-width:70px">
@@ -3038,22 +3038,40 @@ async function loadFromSheets() {
       // reuse the existing row-processing logic inline
       data.rows.forEach(row => {
         if (!row.student_name) return;
+
+        // Resolve real student name: if sheet has anonymized ID, find real name
+        // from local submissions that share the same id or anonymous_id
+        let realName = row.student_name;
+        const isAnonymized = /^Student_[A-Z0-9]{4,8}$/.test(realName);
+        if (isAnonymized) {
+          const local = STATE.submissions.find(s =>
+            (row.id && String(s.id) === row.id) ||
+            (s.anonymousId && s.anonymousId === realName) ||
+            (s.anonymousId && s.anonymousId === row.anonymous_id)
+          );
+          if (local) realName = local.studentName;
+        }
+
+        // Skip if we already have this submission locally (prefer local copy with full content)
         const alreadyHave = STATE.submissions.some(s =>
           (row.id && String(s.id) === row.id) ||
-          (row.student_name && row.date && s.studentName === row.student_name && s.date === row.date)
+          (s.studentName === realName && s.date === row.date)
         );
         if (alreadyHave) return;
+
         const n = v => { const x = parseFloat(v); return isNaN(x) ? 0 : x; };
+        // Use 'essay' column for full text, fall back to content_preview
+        const fullContent = row.essay || row.content || row.content_preview || '';
         const sub = {
-          id: row.id || (row.student_name + '_' + row.date),
-          studentName: row.student_name,
+          id: row.id || (realName + '_' + row.date),
+          studentName: realName,
           anonymousId: row.anonymous_id || '',
           classId: row.class_id || null,
-          promptCode: row.prompt_code || '',
+          promptCode: row.prompt_code || row.class_code || '',
           grade: n(row.grade),
           period: row.period || '',
           assignmentTitle: row.assignment || 'Free Write',
-          content: row.content_preview || '',
+          content: fullContent,
           wordCount: n(row.word_count),
           date: row.date || new Date().toISOString(),
           overallScore: n(row.overall_score),
@@ -3062,9 +3080,9 @@ async function loadFromSheets() {
             organization:      n(row.organization),
             evidence:          n(row.evidence),
             grammar:           n(row.grammar),
-            sentence_variety:  n(row.sentence_variety),
+            sentence_variety:  n(row.sentence_variety) || n(row.sentences),
             vocabulary:        n(row.vocabulary),
-            argument_strength: n(row.argument_strength),
+            argument_strength: n(row.argument_strength) || n(row.argument),
           },
           feedback_summary: row.feedback_summary || '',
           next_steps: row.next_steps || '',
@@ -3147,7 +3165,8 @@ async function saveToSheets(submission) {
       feedback_summary: (submission.feedback_summary || '').substring(0, 300),
       next_steps:       (submission.next_steps || '').substring(0, 200),
       lexile:           String(submission.studentLexile || ''),
-      content_preview:  (submission.content || '').substring(0, 300),
+      content_preview:  (submission.content || '').substring(0, 500),
+      essay:            submission.content || '',
     };
     const qs = Object.entries(params)
       .map(([k,v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v))
