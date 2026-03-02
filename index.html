@@ -616,6 +616,7 @@ const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyp7rZ85_Z40LrVTLwkQ
 // ── STATE ──
 const STATE = {
   sheetRows: [], // raw rows from Google Sheet for name lookup
+  exercisesCompletedSinceGame: 0, // track when to show mini-game
   screen: 'landing',
   student: null,
   teacher: null,
@@ -1621,10 +1622,15 @@ async function submitMLLExercise(index) {
     const lastSub = STATE.submissions.filter(s => s.studentName === STATE.student.name).pop();
     if (lastSub) { lastSub.exercises = STATE.exercises; saveData(); }
     hideLoading();
-    switchStudentTab('exercises');
-    showToast('Great work! Check your feedback below.');
-    // Auto-generate next exercise
-    generateNextExercise();
+    STATE.exercisesCompletedSinceGame = (STATE.exercisesCompletedSinceGame || 0) + 1;
+    if (STATE.exercisesCompletedSinceGame >= 2 + Math.floor(Math.random())) {
+      STATE.exercisesCompletedSinceGame = 0;
+      showMiniGame();
+    } else {
+      switchStudentTab('exercises');
+      showToast('Great work! Check your feedback below.');
+      generateNextExercise();
+    }
   } catch(e) {
     hideLoading();
     showToast('Could not get feedback. Try again.', true);
@@ -1665,10 +1671,15 @@ async function submitExercise(index) {
     const lastSub = STATE.submissions.filter(s => s.studentName === STATE.student.name).pop();
     if (lastSub) { lastSub.exercises = STATE.exercises; saveData(); }
     hideLoading();
-    switchStudentTab('exercises');
-    showToast('Great work! Feedback added.');
-    // Auto-generate next exercise
-    generateNextExercise();
+    STATE.exercisesCompletedSinceGame = (STATE.exercisesCompletedSinceGame || 0) + 1;
+    if (STATE.exercisesCompletedSinceGame >= 2 + Math.floor(Math.random())) {
+      STATE.exercisesCompletedSinceGame = 0;
+      showMiniGame();
+    } else {
+      switchStudentTab('exercises');
+      showToast('Great work! Feedback added.');
+      generateNextExercise();
+    }
   } catch(e) { hideLoading(); showToast('Could not get feedback. Try again.', true); }
 }
 
@@ -3214,6 +3225,550 @@ async function saveToSheets(submission) {
   });
 }
 
+// ── MINI GAME ──
+let gameLoop = null;
+let gameState = {};
+
+function showMiniGame() {
+  document.getElementById('modal-game').classList.remove('hidden');
+  // Disable restart — one play only per unlock
+  document.getElementById('game-restart-btn').style.display = 'none';
+  initGame();
+}
+
+function endMiniGame() {
+  document.getElementById('modal-game').classList.add('hidden');
+  if (gameLoop) { cancelAnimationFrame(gameLoop); gameLoop = null; }
+  switchStudentTab('exercises');
+  showToast('Great work! Keep it up! 🌟');
+  generateNextExercise();
+}
+
+function initGame() {
+  const canvas = document.getElementById('game-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const GROUND = H - 40;
+  const GRAVITY = 0.65;
+  const JUMP_FORCE = -13.5;
+  const DUCK_HEIGHT = 16; // crouched player height
+  const STAND_HEIGHT = 34; // normal player height
+
+  const COLORS = {
+    sky0: '#0a1628', sky1: '#1a3a5c',
+    ground: '#1e3a5f', groundLine: '#2a5080',
+    runner: '#f4a536', runnerDark: '#c47d1a',
+    cactus: '#e85d75', cactusDark: '#b03050',
+    bar: '#5bc4cf', barDark: '#3a8a96',
+    trail: 'rgba(244,165,54,0.25)',
+  };
+
+  gameState = {
+    running: true,
+    started: false, // brief countdown
+    score: 0,
+    hiScore: gameState.hiScore || 0,
+    speed: 5,
+    frame: 0,
+    player: {
+      x: 80, y: GROUND, vy: 0,
+      onGround: true, jumping: false, ducking: false,
+      squish: 1, stretchY: 1, frame: 0,
+      height: STAND_HEIGHT,
+    },
+    obstacles: [],
+    stars: Array.from({length:25}, () => ({
+      x: Math.random()*W, y: Math.random()*(GROUND-20),
+      size: Math.random()*1.5+0.5, twinkle: Math.random()*Math.PI*2
+    })),
+    particles: [],
+    clouds: [{x:100,y:28,w:70},{x:300,y:18,w:90},{x:450,y:32,w:55}],
+    lastObstacle: 80,
+    nextObstacle: 80,
+    countdownFrames: 90, // 1.5s countdown
+    flash: 0,
+  };
+
+  // Controls
+  const keys = {};
+  function onKeyDown(e) {
+    if (e.code==='Space'||e.key===' ') { e.preventDefault(); doJump(); }
+    if (e.code==='ArrowDown'||e.key==='ArrowDown') { e.preventDefault(); doDuck(true); }
+  }
+  function onKeyUp(e) {
+    if (e.code==='ArrowDown'||e.key==='ArrowDown') doDuck(false);
+  }
+  function onTap(e) { e.preventDefault(); doJump(); }
+  document.addEventListener('keydown', onKeyDown);
+  document.addEventListener('keyup', onKeyUp);
+  canvas.addEventListener('touchstart', onTap, {passive:false});
+  canvas.addEventListener('mousedown', onTap);
+
+  function cleanup() {
+    document.removeEventListener('keydown', onKeyDown);
+    document.removeEventListener('keyup', onKeyUp);
+    canvas.removeEventListener('touchstart', onTap);
+    canvas.removeEventListener('mousedown', onTap);
+  }
+
+  function doJump() {
+    if (!gameState.running) return;
+    const p = gameState.player;
+    if (p.ducking) { doDuck(false); return; }
+    if (p.onGround) {
+      p.vy = JUMP_FORCE;
+      p.onGround = false;
+      p.jumping = true;
+      p.squish = 0.65;
+    }
+  }
+
+  function doDuck(active) {
+    if (!gameState.running) return;
+    const p = gameState.player;
+    p.ducking = active;
+    p.height = active ? DUCK_HEIGHT : STAND_HEIGHT;
+    if (active && !p.onGround) {
+      p.vy += 5; // fast fall when duck mid-air
+    }
+  }
+
+  function spawnObstacle() {
+    const s = gameState;
+    const score = s.score;
+    // Weighted type pool grows with score
+    let pool = ['cactus','cactus','cactus'];
+    if (score > 80)  pool.push('bar','bar');
+    if (score > 200) pool.push('double','bird');
+    if (score > 350) pool.push('bar','double','cactus_tall');
+    if (score > 500) pool.push('bar','bar','double','cactus_tall');
+    if (score > 700) pool.push('bar','double','double','cactus_tall','bar');
+
+    const type = pool[Math.floor(Math.random()*pool.length)];
+
+    if (type === 'bar') {
+      // Ceiling-hanging bar: hangs from top, gap only big enough to duck under
+      // Gap = DUCK_HEIGHT + 6px clearance = 22px from ground
+      // Bar bottom = GROUND - 22, bar top = 0, h = GROUND - 22
+      const gapFromGround = DUCK_HEIGHT + 6; // 22px — ducking clears, standing/jumping hits
+      const barBottom = GROUND - gapFromGround;
+      s.obstacles.push({x: W+30, y: 0, w: 50+Math.random()*25, h: barBottom, type:'bar'});
+    } else if (type === 'bird') {
+      const birdY = GROUND - 50 - Math.random()*30;
+      s.obstacles.push({x:W+20, y:birdY, w:28, h:22, type:'bird', wingUp:true, wingTimer:0});
+    } else if (type === 'double') {
+      const h1 = 30 + Math.random()*18;
+      s.obstacles.push({x:W+20, y:GROUND, w:20, h:h1, type:'cactus'});
+      s.obstacles.push({x:W+52, y:GROUND, w:16, h:28, type:'cactus'});
+    } else if (type === 'cactus_tall') {
+      s.obstacles.push({x:W+20, y:GROUND, w:18, h:52, type:'cactus'});
+    } else {
+      const h = 26 + Math.random()*22;
+      s.obstacles.push({x:W+20, y:GROUND, w:18+Math.random()*8, h, type:'cactus'});
+    }
+  }
+
+  function drawPlayer(p) {
+    const x = p.x, y = p.y;
+    const sq = p.squish;
+    const isDucking = p.ducking;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(isDucking ? 1.4 : 1, sq);
+
+    const bodyH = isDucking ? 14 : 22;
+    const bodyW = isDucking ? 28 : 20;
+    const headR = isDucking ? 9 : 10;
+    const bodyTop = isDucking ? -18 : -32;
+    const headY = isDucking ? -20 : -38;
+    const headX = isDucking ? 6 : 2;
+
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.beginPath();
+    ctx.ellipse(0, 2, bodyW*0.8, 4, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    // Body
+    ctx.fillStyle = COLORS.runner;
+    ctx.beginPath();
+    ctx.roundRect(-bodyW/2, bodyTop, bodyW, bodyH, 5);
+    ctx.fill();
+
+    // Head
+    ctx.fillStyle = COLORS.runner;
+    ctx.beginPath();
+    ctx.arc(headX, headY, headR, 0, Math.PI*2);
+    ctx.fill();
+
+    // Eye
+    ctx.fillStyle = COLORS.sky0;
+    ctx.beginPath();
+    ctx.arc(headX+4, headY-2, 2.5, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(headX+5, headY-3, 1, 0, Math.PI*2);
+    ctx.fill();
+
+    // W on shirt
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.font = `bold ${isDucking?8:9}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('W', 0, bodyTop+bodyH*0.55);
+
+    // Legs
+    if (!isDucking) {
+      const lf = Math.floor(p.frame/5)%4;
+      ctx.strokeStyle = COLORS.runnerDark;
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      if (!p.onGround) {
+        ctx.beginPath(); ctx.moveTo(-4,-10); ctx.lineTo(-7,2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(4,-10); ctx.lineTo(7,2); ctx.stroke();
+      } else {
+        const la = [14,-14,4,-4,-14,14,-4,4];
+        const i = lf*2;
+        ctx.beginPath(); ctx.moveTo(-3,-10); ctx.lineTo(-3+la[i],5); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(3,-10); ctx.lineTo(3+la[i+1],5); ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawCactus(obs) {
+    ctx.save();
+    ctx.translate(obs.x, obs.y);
+    ctx.fillStyle = COLORS.cactus;
+    ctx.beginPath();
+    ctx.roundRect(-obs.w/2, -obs.h, obs.w, obs.h, 4);
+    ctx.fill();
+    if (obs.h > 30) {
+      ctx.fillStyle = COLORS.cactusDark;
+      ctx.beginPath(); ctx.roundRect(-obs.w/2-9, -obs.h*0.65, 9, obs.h*0.28, 3); ctx.fill();
+      ctx.beginPath(); ctx.roundRect(obs.w/2, -obs.h*0.52, 9, obs.h*0.22, 3); ctx.fill();
+    }
+    ctx.fillStyle = 'rgba(255,255,255,0.12)';
+    ctx.beginPath(); ctx.roundRect(-obs.w/2+3, -obs.h+5, obs.w/4, obs.h-10, 2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawBar(obs) {
+    ctx.save();
+    ctx.translate(obs.x, obs.y);
+    // Bar hangs from ceiling (y=0) down to obs.h
+    const grad = ctx.createLinearGradient(0, 0, 0, obs.h);
+    grad.addColorStop(0, COLORS.barDark);
+    grad.addColorStop(1, COLORS.bar);
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    // Rounded only at bottom
+    ctx.moveTo(0, 0);
+    ctx.lineTo(obs.w, 0);
+    ctx.lineTo(obs.w, obs.h - 6);
+    ctx.quadraticCurveTo(obs.w, obs.h, obs.w - 6, obs.h);
+    ctx.lineTo(6, obs.h);
+    ctx.quadraticCurveTo(0, obs.h, 0, obs.h - 6);
+    ctx.closePath();
+    ctx.fill();
+    // Glow on bottom edge
+    ctx.shadowColor = COLORS.bar;
+    ctx.shadowBlur = 14;
+    ctx.strokeStyle = 'rgba(91,196,207,0.8)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, obs.h);
+    ctx.lineTo(obs.w, obs.h);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    // Danger stripes
+    ctx.fillStyle = 'rgba(0,0,0,0.18)';
+    for (let i=0; i<5; i++) {
+      ctx.fillRect(obs.w*0.11*i+3, obs.h-30, obs.w*0.065, 28);
+    }
+    // DUCK label at bottom of bar
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.font = 'bold 10px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('DUCK!', obs.w/2, obs.h - 8);
+    // Ceiling bolts
+    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.beginPath(); ctx.arc(obs.w*0.25, 4, 4, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(obs.w*0.75, 4, 4, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawBird(obs) {
+    ctx.save();
+    ctx.translate(obs.x, obs.y);
+    ctx.fillStyle = COLORS.bar;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 14, 8, 0, 0, Math.PI*2);
+    ctx.fill();
+    const wy = obs.wingUp ? -9 : 8;
+    ctx.beginPath(); ctx.moveTo(-5,-2); ctx.quadraticCurveTo(-18,wy,-14,2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(5,-2); ctx.quadraticCurveTo(18,wy,14,2); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(9,-2,3,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#333'; ctx.beginPath(); ctx.arc(10,-2,1.5,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  function addParticles(x, y, color) {
+    for (let i=0; i<10; i++) {
+      gameState.particles.push({
+        x, y, vx:(Math.random()-0.5)*6, vy:(Math.random()-0.5)*5-2,
+        life:1, r:3+Math.random()*3,
+        color: color||[COLORS.runner,COLORS.bar,'#fff'][Math.floor(Math.random()*3)]
+      });
+    }
+  }
+
+  function gameOver() {
+    const s = gameState;
+    s.running = false;
+    s.flash = 8;
+    if (Math.floor(s.score) > s.hiScore) s.hiScore = Math.floor(s.score);
+    document.getElementById('game-score').textContent = Math.floor(s.score);
+    // No restart button — one play only
+    cleanup();
+    addParticles(s.player.x, s.player.y-20, COLORS.cactus);
+  }
+
+  function tick() {
+    const s = gameState;
+    const p = s.player;
+    s.frame++;
+
+    if (s.flash > 0) {
+      s.flash--;
+      ctx.fillStyle = 'rgba(232,93,117,0.4)';
+      ctx.fillRect(0,0,W,H);
+    }
+
+    // Countdown
+    if (s.countdownFrames > 0) {
+      s.countdownFrames--;
+      drawBg();
+      drawRunner(p); // use outer drawRunner
+      ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      ctx.fillRect(W/2-80, H/2-35, 160, 60);
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 16px "DM Sans",sans-serif';
+      ctx.textAlign = 'center';
+      const cd = Math.ceil(s.countdownFrames/30);
+      ctx.fillText(cd > 0 ? 'Starting in ' + cd + '…' : 'GO! 🚀', W/2, H/2+2);
+      gameLoop = requestAnimationFrame(tick);
+      return;
+    }
+
+    if (!s.running) {
+      drawBg();
+      drawRunner(p);
+      s.obstacles.forEach(o => { if(o.type==='bar') drawBar(o); else if(o.type==='bird') drawBird(o); else drawCactus(o); });
+      // Particles
+      s.particles = s.particles.filter(pt=>pt.life>0);
+      s.particles.forEach(pt => {
+        pt.x+=pt.vx; pt.y+=pt.vy; pt.vy+=0.2; pt.life-=0.035;
+        ctx.globalAlpha=pt.life;
+        ctx.fillStyle=pt.color;
+        ctx.beginPath(); ctx.arc(pt.x,pt.y,pt.r,0,Math.PI*2); ctx.fill();
+        ctx.globalAlpha=1;
+      });
+      // Game over overlay
+      ctx.fillStyle='rgba(0,0,0,0.55)';
+      ctx.beginPath(); ctx.roundRect(W/2-120,H/2-45,240,80,12); ctx.fill();
+      ctx.fillStyle='#fff';
+      ctx.font='bold 20px "DM Sans",sans-serif';
+      ctx.textAlign='center';
+      ctx.fillText('Game Over! 💪', W/2, H/2-16);
+      ctx.font='13px "DM Sans",sans-serif';
+      ctx.fillStyle='rgba(255,255,255,0.7)';
+      ctx.fillText('Score: ' + Math.floor(s.score) + '  |  Best: ' + s.hiScore, W/2, H/2+10);
+      ctx.font='11px "DM Sans",sans-serif';
+      ctx.fillStyle='rgba(244,165,54,0.8)';
+      ctx.fillText('Complete 2–3 more exercises to play again!', W/2, H/2+32);
+      gameLoop = requestAnimationFrame(tick);
+      return;
+    }
+
+    // Speed: starts at 5, caps at 16 around score 600
+    s.score += 0.12;
+    s.speed = Math.min(5 + s.score * 0.018, 16);
+    document.getElementById('game-score').textContent = Math.floor(s.score);
+
+    // Player physics
+    p.vy += GRAVITY;
+    p.y += p.vy;
+    p.frame++;
+    p.squish += (1 - p.squish) * 0.18;
+
+    if (p.y >= GROUND) {
+      if (p.vy > 3) p.squish = 1.35;
+      p.y = GROUND;
+      p.vy = 0;
+      p.onGround = true;
+      p.jumping = false;
+    }
+
+    // Spawn obstacles — frequency and complexity increase with score
+    s.lastObstacle++;
+    // Gap shrinks from 80 frames down to 30 as score rises to 700
+    const minGap = Math.max(30, 80 - s.score * 0.072);
+    const maxGap = Math.max(minGap + 10, 100 - s.score * 0.09);
+    if (s.lastObstacle >= s.nextObstacle) {
+      spawnObstacle();
+      // At high scores spawn a second obstacle close behind (gauntlet mode)
+      if (s.score > 500 && Math.random() < 0.35) {
+        const delay = 28 + Math.random() * 18;
+        setTimeout(() => { if (s.running) spawnObstacle(); }, delay * (1000/60));
+      }
+      s.lastObstacle = 0;
+      s.nextObstacle = minGap + Math.random() * (maxGap - minGap);
+    }
+
+    // Move obstacles
+    s.obstacles.forEach(o => {
+      o.x -= s.speed;
+      if (o.type==='bird') { o.wingTimer++; if(o.wingTimer%10===0) o.wingUp=!o.wingUp; }
+    });
+    s.obstacles = s.obstacles.filter(o => o.x > -80);
+
+    // Clouds
+    s.clouds.forEach(c => { c.x -= s.speed*0.25; if(c.x < -120) c.x = W+120; });
+
+    // Collision
+    const ph = p.height;
+    const px1 = p.x - 10, px2 = p.x + 10;
+    const py1 = p.y - ph, py2 = p.y - 2;
+    for (const o of s.obstacles) {
+      let ox1,ox2,oy1,oy2;
+      if (o.type==='bar') {
+        ox1=o.x+2; ox2=o.x+o.w-2; oy1=o.y+2; oy2=o.y+o.h-2;
+      } else if (o.type==='bird') {
+        ox1=o.x-12; ox2=o.x+12; oy1=o.y-6; oy2=o.y+6;
+      } else {
+        ox1=o.x-o.w/2+2; ox2=o.x+o.w/2-2; oy1=o.y-o.h+2; oy2=o.y-2;
+      }
+      if (px2>ox1 && px1<ox2 && py2>oy1 && py1<oy2) {
+        gameOver(); break;
+      }
+    }
+
+    drawScene();
+    gameLoop = requestAnimationFrame(tick);
+  }
+
+  // Reuse outer drawRunner name — just call the one defined above
+  function drawRunner(p) { drawPlayer(p); }
+
+  function drawBg() {
+    const s = gameState;
+    const skyGrad = ctx.createLinearGradient(0,0,0,H);
+    skyGrad.addColorStop(0, COLORS.sky0);
+    skyGrad.addColorStop(1, COLORS.sky1);
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0,0,W,H);
+
+    // Stars
+    s.stars.forEach(st => {
+      st.twinkle += 0.025;
+      ctx.globalAlpha = 0.35 + Math.sin(st.twinkle)*0.3;
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(st.x, st.y, st.size, 0, Math.PI*2); ctx.fill();
+      ctx.globalAlpha = 1;
+    });
+
+    // Clouds
+    s.clouds.forEach(c => {
+      ctx.fillStyle = 'rgba(255,255,255,0.05)';
+      ctx.beginPath(); ctx.ellipse(c.x,c.y,c.w/2,12,0,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(c.x-c.w*0.2,c.y+5,c.w/3,9,0,0,Math.PI*2); ctx.fill();
+    });
+
+    // Ground
+    ctx.fillStyle = COLORS.ground;
+    ctx.fillRect(0, GROUND+2, W, H-GROUND);
+    ctx.strokeStyle = COLORS.groundLine;
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0,GROUND+2); ctx.lineTo(W,GROUND+2); ctx.stroke();
+
+    // Ground detail
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.lineWidth = 1;
+    for (let i=0; i<8; i++) {
+      const gx = ((s.frame * s.speed*0.4 + i*65) % (W+65)) - 65;
+      ctx.beginPath(); ctx.moveTo(gx,GROUND+6); ctx.lineTo(gx+40,GROUND+6); ctx.stroke();
+    }
+
+    // Speed indicator bar
+    const speedPct = Math.min((s.speed-5)/11, 1);
+    ctx.fillStyle = 'rgba(255,255,255,0.06)';
+    ctx.beginPath(); ctx.roundRect(12,H-18,100,6,3); ctx.fill();
+    const barColor = speedPct < 0.4 ? COLORS.bar : speedPct < 0.75 ? '#f4a536' : COLORS.cactus;
+    ctx.fillStyle = barColor;
+    ctx.beginPath(); ctx.roundRect(12,H-18,100*speedPct,6,3); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.font = '8px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('SPEED', 118, H-12);
+  }
+
+  function drawScene() {
+    const s = gameState;
+    const p = s.player;
+
+    drawBg();
+
+    // Trail
+    if (p.onGround && s.running) {
+      s.particles.push({x:p.x-14, y:p.y-2, vx:-1.5-Math.random(), vy:-Math.random()*0.8, life:0.4, r:2.5, color:COLORS.trail});
+    }
+    s.particles = s.particles.filter(pt=>pt.life>0);
+    s.particles.forEach(pt => {
+      pt.x+=pt.vx; pt.y+=pt.vy; pt.life-=0.05;
+      ctx.globalAlpha=pt.life*0.6;
+      ctx.fillStyle=pt.color;
+      ctx.beginPath(); ctx.arc(pt.x,pt.y,pt.r,0,Math.PI*2); ctx.fill();
+      ctx.globalAlpha=1;
+    });
+
+    // Draw obstacles
+    s.obstacles.forEach(o => {
+      if (o.type==='bar') drawBar(o);
+      else if (o.type==='bird') drawBird(o);
+      else drawCactus(o);
+    });
+
+    // Player
+    drawPlayer(p);
+
+    // HI score
+    ctx.fillStyle = 'rgba(255,255,255,0.18)';
+    ctx.font = 'bold 10px monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText('BEST ' + s.hiScore, W-12, 18);
+
+    // Duck hint when bar approaching
+    const nearBar = s.obstacles.find(o => o.type==='bar' && o.x < W*0.6 && o.x > p.x);
+    if (nearBar && nearBar.x - p.x < 180) {
+      const urgency = 1 - (nearBar.x - p.x) / 180;
+      ctx.globalAlpha = urgency * 0.9;
+      ctx.fillStyle = COLORS.bar;
+      ctx.font = 'bold 12px "DM Sans",sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('↓ DUCK!', p.x, p.y - 55);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  if (gameLoop) cancelAnimationFrame(gameLoop);
+  gameLoop = requestAnimationFrame(tick);
+}
+
+function restartGame() {
+  // Restart disabled — no button shown. Students must complete more exercises.
+}
+
 // ── EMAIL NOTIFICATION ──
 async function sendEmailNotification(submission, result) {
   const t = STATE.teacher;
@@ -3274,5 +3829,34 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 });
 
 </script>
+
+<!-- MINI GAME MODAL -->
+<div class="modal-overlay hidden" id="modal-game" style="z-index:9999">
+  <div class="modal-card" style="max-width:520px;padding:0;overflow:hidden;border-radius:20px;background:#1a1a2e">
+    <div style="padding:20px 24px 12px;background:#16213e;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:#fff">🎮 Brain Break!</div>
+        <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);margin-top:2px">Keep going — next exercise coming right up</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:0.7rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.08em">Score</div>
+        <div id="game-score" style="font-size:1.4rem;font-weight:900;color:#f4a536;font-family:monospace">0</div>
+      </div>
+    </div>
+    <canvas id="game-canvas" width="520" height="180" style="display:block;width:100%"></canvas>
+    <div id="game-message" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:#fff;font-family:'DM Sans',sans-serif;pointer-events:none"></div>
+    <div style="padding:14px 24px;background:#16213e;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div style="font-size:0.78rem;color:rgba(255,255,255,0.5);display:flex;gap:10px;flex-wrap:wrap">
+        <span><kbd style="background:rgba(255,255,255,0.1);padding:2px 8px;border-radius:4px;font-size:0.72rem">SPACE</kbd> / <kbd style="background:rgba(255,255,255,0.1);padding:2px 8px;border-radius:4px;font-size:0.72rem">TAP</kbd> jump</span>
+        <span><kbd style="background:rgba(91,196,207,0.2);padding:2px 8px;border-radius:4px;font-size:0.72rem;color:#5bc4cf">↓</kbd> duck under bars</span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button id="game-restart-btn" onclick="restartGame()" style="display:none;background:rgba(244,165,54,0.15);color:#f4a536;border:1px solid rgba(244,165,54,0.3);padding:7px 16px;border-radius:100px;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">↺ Try Again</button>
+        <button onclick="endMiniGame()" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.15);padding:7px 16px;border-radius:100px;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Next Exercise →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
