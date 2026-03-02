@@ -369,7 +369,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--navy);
 .hc1{background:rgba(232,93,117,0.7)}.hc2{background:rgba(251,146,60,0.7)}.hc3{background:rgba(91,164,207,0.7)}.hc4{background:rgba(46,204,138,0.7)}.hc5{background:rgba(167,139,250,0.7)}
 .submissions-list{background:var(--white);border-radius:16px;border:1px solid var(--border);overflow:hidden}
 .sl-header{display:grid;grid-template-columns:160px 1fr 60px 70px 90px;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--cream);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-secondary);font-weight:700;gap:8px}
-.sl-row{display:grid;grid-template-columns:160px 1fr 60px 70px 90px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s;gap:8px;align-items:center}
+.sl-row{display:grid;grid-template-columns:160px 1fr 60px 70px 90px 36px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s;gap:8px;align-items:center}
 .sl-row:hover{background:var(--cream)}
 .sl-row:last-child{border-bottom:none}
 .sl-name{font-weight:600;font-size:0.85rem;color:var(--navy)}
@@ -466,7 +466,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--navy);
   <div class="modal-box" style="max-width:600px">
     <button class="modal-close" onclick="closeModal('modal-submission')">&times;</button>
     <div id="modal-submission-content"></div>
-    <button class="btn btn-secondary btn-full" style="margin-top:16px" onclick="closeModal('modal-submission')">Close</button>
+    <div style="display:flex;gap:8px;margin-top:16px">
+    <button class="btn btn-secondary" style="flex:1" onclick="closeModal('modal-submission')">Close</button>
+    <button class="btn" style="background:rgba(232,93,117,0.1);color:#e85d75;border:1px solid rgba(232,93,117,0.25);padding:10px 18px;border-radius:8px;font-size:0.85rem;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600" onclick="deleteFromModal()">🗑 Delete Sample</button>
+  </div>
   </div>
 </div>
 
@@ -2564,7 +2567,7 @@ function _renderTeacherDashboardInner() {
       ${mySubs.length ? `
       <div class="submissions-list">
         <div class="sl-header">
-          <div>Student</div><div>Essay Preview</div><div>Score</div><div>Level</div><div>Date</div>
+          <div>Student</div><div>Essay Preview</div><div>Score</div><div>Level</div><div>Date</div><div></div>
         </div>
         ${[...mySubs].reverse().map(sub => `
         <div class="sl-row" onclick="viewSubmission('${sub.id}')">
@@ -2576,6 +2579,7 @@ function _renderTeacherDashboardInner() {
           <div class="sl-score">${sub.overallScore || '—'}</div>
           <div class="sl-level"><span class="hc hc${sub.overallLevel||1}">L${sub.overallLevel||'—'}</span></div>
           <div class="sl-date">${new Date(sub.date).toLocaleDateString()}</div>
+          <div onclick="event.stopPropagation();confirmDeleteSubmission('${sub.id}')" title="Delete this submission" style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:rgba(232,93,117,0.08);color:#e85d75;cursor:pointer;font-size:0.85rem;transition:background 0.15s" onmouseover="this.style.background='rgba(232,93,117,0.2)'" onmouseout="this.style.background='rgba(232,93,117,0.08)'">🗑</div>
         </div>`).join('')}
       </div>` : `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">No submissions yet</div><p>Share your class code <strong>${activeClass?.code || t.code || ''}</strong> with students.</p></div>`}
     </div>
@@ -2767,6 +2771,18 @@ function executeMove(studentName) {
   showToast(`✅ ${studentName} moved to ${targetClass?.name}.`);
 }
 
+function confirmDeleteSubmission(subId) {
+  const sub = STATE.submissions.find(s => String(s.id) === String(subId));
+  if (!sub) return;
+  const name = getRealName(sub);
+  const date = new Date(sub.date).toLocaleDateString();
+  if (!confirm(`Delete this writing sample?\n\nStudent: ${name}\nDate: ${date}\nScore: ${sub.overallScore||'—'}\n\nThis cannot be undone.`)) return;
+  STATE.submissions = STATE.submissions.filter(s => String(s.id) !== String(subId));
+  saveData();
+  renderTeacherDashboard();
+  showToast(`🗑 Writing sample deleted.`);
+}
+
 function confirmDeleteStudent(studentName) {
   const count = STATE.submissions.filter(s => s.studentName === studentName).length;
   if (!confirm(`Delete ALL data for ${studentName}?\n\nThis will permanently remove ${count} submission(s) and cannot be undone.`)) return;
@@ -2845,7 +2861,17 @@ function viewSubmission(id) {
     </div>` : ''}
 
     ${sub.next_steps ? `<div class="next-steps-box" style="margin-top:12px">🎯 <strong>Next Step for Student:</strong> ${sub.next_steps}</div>` : ''}`;
+  // Store current id for modal delete button
+  document.getElementById('modal-submission').dataset.subId = id;
   openModal('modal-submission');
+}
+
+function deleteFromModal() {
+  const modal = document.getElementById('modal-submission');
+  const subId = modal.dataset.subId;
+  if (!subId) return;
+  closeModal('modal-submission');
+  confirmDeleteSubmission(subId);
 }
 
 function copyStudentLink() {
