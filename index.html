@@ -1307,63 +1307,139 @@ async function callAI(content, gradeLevel, assignmentPrompt) {
     || localStorage.getItem('writelift_openai_key') || localStorage.getItem('fallback_api_key');
   if (!apiKey || apiKey.length < 20) throw new Error('No API key found.');
 
-  const rubricDesc =
-    'BREED MIDDLE SCHOOL WRITING RUBRIC. Score each category 1, 2, 3, or 4 ONLY (integers).\n\n' +
-    'CLAIM (Restate & Answer):\n' +
-    '  1=Does not address the question or develop the topic.\n' +
-    '  2=Addresses the question, ideas somewhat developed.\n' +
-    '  3=Addresses the question, ideas mostly developed.\n' +
-    '  4=Addresses the question, ideas clearly developed.\n\n' +
-    'EVIDENCE (Cite):\n' +
-    '  1=Evidence is not relevant.\n' +
-    '  2=Evidence somewhat relevant and developed to support claim.\n' +
-    '  3=Evidence mostly relevant and clearly developed to support claim.\n' +
-    '  4=Evidence relevant and skillfully developed to support claim.\n\n' +
-    'REASONING (Explain):\n' +
-    '  1=Key parts of evidence not described; no explanation of how evidence supports claim.\n' +
-    '  2=Key parts somewhat described; some explanation of how evidence supports claim.\n' +
-    '  3=Key parts described; mostly clear explanation of how evidence supports claim.\n' +
-    '  4=Key parts clearly described; clear thorough explanation of how evidence supports claim.\n\n' +
-    'CONVENTIONS:\n' +
-    '  1=Numerous errors interfere with meaning; fragments and run-ons.\n' +
-    '  2=Some errors interfere with meaning; most sentences complete.\n' +
-    '  3=Few errors that may distract but not interfere; most sentences complete and punctuated correctly.\n' +
-    '  4=No errors interfere with meaning; almost all sentences complete and punctuated correctly.\n\n' +
-    'Score ranges: 1-4=Needs Improvement | 5-8=Developing Proficiency | 9-12=Proficient | 13-16=Exceeds Expectations';
+  // Consistency fixes applied here:
+  //  1. temperature: 0.1  — drastically reduces score variance across re-submissions
+  //  2. seed: 42          — deterministic sampling where the API supports it
+  //  3. Behavioral anchors — each level defined by observable, countable features (not vague adjectives)
+  //  4. Mandatory chain-of-thought — model must quote evidence & match anchor BEFORE producing numbers
+  //  5. Explicit tie-break rules — when between levels, always go lower
+  //  6. Independent category scoring — model told not to let one score bleed into another
 
-  const userPrompt =
-    'Grade ' + gradeLevel + ' student writing.' +
-    (assignmentPrompt ? ' Assignment: "' + assignmentPrompt + '"' : '') +
-    '\n\n' + rubricDesc +
-    '\n\nSTUDENT WRITING:\n"""\n' + content + '\n"""\n\n' +
-    'Score honestly. A student with a clear claim, some evidence, basic reasoning earns 2-3 per category. ' +
-    'Reserve 4s for genuinely strong work.\n\n' +
-    'Respond ONLY with this JSON (scores must be integers 1-4):\n' +
-    '{"scores":{"claim":0,"evidence":0,"reasoning":0,"conventions":0},' +
-    '"feedback_summary":"2-3 warm encouraging sentences referencing the rubric",' +
-    '"claim_feedback":"specific feedback on their claim",' +
-    '"evidence_feedback":"specific feedback on their evidence",' +
-    '"reasoning_feedback":"specific feedback on their reasoning",' +
-    '"conventions_feedback":"specific feedback on grammar and conventions",' +
-    '"strength_highlights":[{"skill":"","text":"exact quote","comment":"why strong"}],' +
-    '"improvement_highlights":[{"skill":"","text":"quote","comment":"suggestion","example":"rewritten"}],' +
-    '"micro_skills_flagged":["specific weakness"],' +
-    '"next_steps":"one concrete action for their lowest category",' +
-    '"factual_errors":[{"claim":"exact quote","correction":"accurate fact","explanation":"brief explanation"}]}';
+  const systemPrompt = [
+    'You are a calibrated, consistent writing scorer using the Breed Middle School Writing Rubric.',
+    'Your scores MUST be reproducible: the same essay scored twice should receive the same score.',
+    'Score Grade ' + gradeLevel + ' writing.',
+    '',
+    'MANDATORY PROCESS — follow for EVERY category:',
+    '  1. Quote the most relevant sentence(s) from the student writing.',
+    '  2. Match that quote to a behavioral anchor (see rubric below).',
+    '  3. Apply the tie-break rule: when between levels, assign the LOWER score.',
+    '  4. Score each category INDEPENDENTLY — a weak claim must not lower the Evidence score.',
+    '',
+    'SCORING PHILOSOPHY:',
+    '  - Score only what is written on the page, not what the student may have intended.',
+    '  - If a required element is missing, that category scores 1.',
+    '  - Short responses are not automatically low scores — score the structure present.',
+    '  - Grade 6-8 baseline: expect simple sentences, one or two pieces of evidence, basic transitions.',
+    '  - Respond ONLY with valid JSON.',
+  ].join('\n');
+
+  const rubric = [
+    'BREED RUBRIC — BEHAVIORAL ANCHORS (integers 1, 2, 3, or 4 only)',
+    '',
+    'CLAIM (Does the student state a clear position answering the question?)',
+    '  1 — No identifiable claim, OR response answers a different question entirely.',
+    '      Anchor example: "Dogs are cool." for a prompt about whether zoos should be banned.',
+    '  2 — Claim exists and connects to the prompt, but is vague or incomplete.',
+    '      Missing a controlling idea; reader must guess at the full position.',
+    '      Anchor example: "I think zoos are bad." — position stated but not developed.',
+    '  3 — Clear claim that directly answers the question with a controlling idea.',
+    '      Reader knows the writer\'s position without guessing.',
+    '      Anchor example: "Zoos should be banned because they deprive animals of natural habitat."',
+    '  4 — Precise, nuanced claim that answers the question AND signals the argument\'s structure.',
+    '      Anchor example: "Although zoos claim to protect species, the harm they cause outweighs conservation benefits."',
+    '  TIE-BREAK: Answers prompt but feels thin → 2. Clear and complete but not sophisticated → 3.',
+    '',
+    'EVIDENCE (Does the student cite relevant evidence to support the claim?)',
+    '  1 — No evidence present, OR evidence is completely off-topic.',
+    '      Vague phrases like "studies show" with nothing specific count as no evidence.',
+    '      Anchor example: "Many people agree with me." with nothing else.',
+    '  2 — At least one piece of evidence loosely connected to the claim but underdeveloped.',
+    '      Too general or the connection to the claim is not explained.',
+    '      Anchor example: "Animals in zoos sometimes die early." — relevant but vague.',
+    '  3 — One or more specific facts, quotes, or examples that clearly connect to the claim.',
+    '      Anchor example: "According to the article, orcas in captivity live 13 years vs 30-50 in the wild."',
+    '  4 — Multiple specific pieces of evidence, skillfully integrated; quotes are introduced, not dropped in.',
+    '  TIE-BREAK: Generic or thin evidence → 2. Specific and connected but only one piece → 3.',
+    '',
+    'REASONING (Does the student explain HOW the evidence supports the claim?)',
+    '  1 — Evidence is stated but no attempt to connect it to the claim.',
+    '      Student lists facts without explaining why they matter.',
+    '      Anchor example: "Orcas die early. This is bad." — no logical bridge.',
+    '  2 — Some attempt to explain but logic is incomplete; reader must fill in gaps.',
+    '      "This shows that..." without explaining the mechanism.',
+    '      Anchor example: "This shows zoos are harmful." — conclusion without logical bridge.',
+    '  3 — Clear explanation of WHY the evidence supports the claim; logical bridge is explicit.',
+    '      Anchor example: "This 17-year gap shows captivity shortens orca lives, proving zoos cause net harm."',
+    '  4 — Sophisticated reasoning addressing complexity; may anticipate counterarguments or chain multiple steps.',
+    '  TIE-BREAK: Says "this shows X" without unpacking → 2. Short but explicit connection → 3.',
+    '',
+    'CONVENTIONS (Are sentences correctly formed and punctuated?)',
+    '  COUNT sentence-level errors: fragments, run-ons, comma splices, missing end punctuation.',
+    '  Spelling errors alone do NOT lower the score unless they obscure meaning.',
+    '  1 — 4 or more sentence-level errors that force re-reading to understand meaning.',
+    '      Anchor example: "Animals need space they cant live in small cages its not fair"',
+    '  2 — 2-3 sentence-level errors; most sentences complete but errors interrupt the reader.',
+    '  3 — 0-1 sentence-level errors; errors (if any) are minor and do not obscure meaning.',
+    '  4 — Zero errors affecting readability; sentences are varied in structure (not just all simple).',
+    '  TIE-BREAK: Count errors exactly. 0=4, 1=3, 2-3=2, 4+=1.',
+  ].join('\n');
+
+  const userPrompt = [
+    'Grade ' + gradeLevel + ' student writing.' + (assignmentPrompt ? '\nAssignment: "' + assignmentPrompt + '"' : ''),
+    '',
+    rubric,
+    '',
+    'STUDENT WRITING:',
+    '"""',
+    content,
+    '"""',
+    '',
+    'For EACH category you MUST include in your analysis:',
+    '  a) The exact quote from the student writing you used to score it',
+    '  b) Which anchor it matches and why',
+    '  c) Your tie-break decision if applicable',
+    '',
+    'Then output this exact JSON:',
+    '{',
+    '  "analysis": {',
+    '    "claim_quote": "exact quote used to score Claim",',
+    '    "claim_reasoning": "which anchor matches and why; tie-break if used",',
+    '    "evidence_quote": "exact quote used to score Evidence",',
+    '    "evidence_reasoning": "which anchor matches and why; tie-break if used",',
+    '    "reasoning_quote": "exact quote used to score Reasoning",',
+    '    "reasoning_reasoning": "which anchor matches and why; tie-break if used",',
+    '    "conventions_errors": "list every sentence-level error found, or none",',
+    '    "conventions_reasoning": "error count and which anchor that triggers"',
+    '  },',
+    '  "scores": {"claim": 0, "evidence": 0, "reasoning": 0, "conventions": 0},',
+    '  "feedback_summary": "2-3 warm sentences referencing their actual writing",',
+    '  "claim_feedback": "quote their claim, name the score, say exactly what would make it one level higher",',
+    '  "evidence_feedback": "name their actual evidence, say whether it is specific enough, show what a stronger citation looks like",',
+    '  "reasoning_feedback": "quote where they explain the connection (or fail to), show what better reasoning looks like",',
+    '  "conventions_feedback": "name specific errors found by quoting them, or confirm sentences are clean",',
+    '  "strength_highlights": [{"skill": "", "text": "exact quote", "comment": "why this is strong"}],',
+    '  "improvement_highlights": [{"skill": "", "text": "quote needing work", "comment": "specific suggestion", "example": "rewritten version"}],',
+    '  "micro_skills_flagged": ["specific skill to target in exercises"],',
+    '  "next_steps": "one concrete action targeting their single lowest-scoring category",',
+    '  "factual_errors": [{"claim": "exact quote", "correction": "accurate fact", "explanation": "brief explanation"}]',
+    '}',
+  ].join('\n');
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
     body: JSON.stringify({
-      model: 'gpt-4o', max_tokens: 1800,
+      model: 'gpt-4o',
+      max_tokens: 2400,
+      temperature: 0.1,
+      seed: 42,
       response_format: { type: 'json_object' },
       messages: [
-        { role: 'system', content: 'You are WriteLift AI using the Breed Middle School Writing Rubric. ' +
-          'Score Grade ' + gradeLevel + ' writing. Each of 4 categories (Claim, Evidence, Reasoning, Conventions) scored 1-4 (integers only). ' +
-          'Total out of 16. Be honest, specific, encouraging. Reference actual sentences. Respond ONLY with valid JSON.' },
-        { role: 'user', content: userPrompt }
-      ]
-    })
+        { role: 'system', content: systemPrompt },
+        { role: 'user',   content: userPrompt },
+      ],
+    }),
   });
 
   if (!response.ok) {
