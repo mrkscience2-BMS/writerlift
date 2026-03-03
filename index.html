@@ -635,15 +635,41 @@ const STATE = {
   teacherTab: 'overview',
 };
 
+// Breed Middle School Writing Rubric — 4 categories, each 1–4, total /16
 const SKILL_COLORS = {
-  organization:'#F4A536', evidence:'#5BA4CF',
-  grammar:'#2ECC8A', sentence_variety:'#E85D75',
-  vocabulary:'#A78BFA', argument_strength:'#FB923C'
+  claim:'#F4A536', evidence:'#5BA4CF',
+  reasoning:'#2ECC8A', conventions:'#A78BFA'
 };
 const SKILL_LABELS = {
-  organization:'Organization', evidence:'Evidence',
-  grammar:'Grammar', sentence_variety:'Sentences',
-  vocabulary:'Vocabulary', argument_strength:'Argument'
+  claim:'Claim', evidence:'Evidence',
+  reasoning:'Reasoning', conventions:'Conventions'
+};
+// Rubric descriptors for each skill x level (used in feedback display)
+const RUBRIC_DESCRIPTORS = {
+  claim: {
+    1:'Does not address the question or develop the topic.',
+    2:'Addresses the question but ideas are somewhat developed.',
+    3:'Addresses the question and ideas are mostly developed.',
+    4:'Addresses the question and ideas are clearly developed.'
+  },
+  evidence: {
+    1:'Evidence selected is not relevant.',
+    2:'Evidence is somewhat relevant and developed to support the claim.',
+    3:'Evidence is mostly relevant and clearly developed to support the claim.',
+    4:'Evidence is relevant and skillfully developed to support the claim.'
+  },
+  reasoning: {
+    1:'Key parts of evidence are not described; no explanation of how evidence supports claim.',
+    2:'Key parts somewhat described; some explanation of how evidence supports claim.',
+    3:'Key parts described; mostly clear explanation of how evidence supports claim.',
+    4:'Key parts clearly described; clear explanation of how evidence supports claim.'
+  },
+  conventions: {
+    1:'Numerous errors interfere with meaning; fragments and run-ons.',
+    2:'Some errors interfere with meaning; most sentences complete but some errors.',
+    3:'Few errors that may distract but not interfere; most sentences complete and punctuated correctly.',
+    4:'No errors that interfere with meaning; almost all sentences complete and punctuated correctly.'
+  }
 };
 const MILESTONES_DEF = [
   { type:'first_submission', label:'First Submission', icon:'✍️', desc:'Submitted your first essay' },
@@ -850,18 +876,20 @@ function hideLoading() {
 
 // ── HELPERS ──
 function scoreToLevel(score) {
-  // Aligned to Common Core State Standards (CCSS) writing performance levels:
-  // L1 = Well Below Standard  (0–44)
-  // L2 = Approaching Standard (45–64)
-  // L3 = Meeting Standard     (65–79)
-  // L4 = Exceeding Standard   (80–89)
-  // L5 = Advanced             (90–100)
-  // Thresholds match SBAC/PARCC achievement level descriptors for W strand
-  if (score >= 90) return 5;
-  if (score >= 80) return 4;
-  if (score >= 65) return 3;
-  if (score >= 45) return 2;
+  // Breed Middle School Rubric: 1-4 scale
+  // 1 = Needs Improvement, 2 = Developing Proficiency, 3 = Proficient, 4 = Exceeds Expectations
+  // score here is already 1–4 from the AI; this function normalizes edge cases
+  if (score >= 4) return 4;
+  if (score >= 3) return 3;
+  if (score >= 2) return 2;
   return 1;
+}
+function levelLabel(level) {
+  return ['','Needs Improvement','Developing Proficiency','Proficient','Exceeds Expectations'][Math.round(level)] || 'Needs Improvement';
+}
+function totalScore(scores) {
+  // Sum of 4 skills, each 1–4, total out of 16
+  return Object.values(scores).reduce((a,b) => a + Number(b), 0);
 }
 function calcOverallLevel() {
   const vals = Object.values(STATE.skills);
@@ -871,7 +899,7 @@ function calcOverallLevel() {
 // Detect multilingual learner: 2+ skills scoring at L1 or L2 (score <= 64, per CCSS thresholds)
 function detectMLL(scores) {
   if (!scores) return false;
-  return Object.values(scores).filter(s => s <= 64).length >= 2;
+  return Object.values(scores).filter(s => s <= 2).length >= 2;
 }
 
 // FERPA: generate stable anonymous ID from name (not reversible)
@@ -1279,54 +1307,60 @@ async function callAI(content, gradeLevel, assignmentPrompt) {
     || localStorage.getItem('writelift_openai_key') || localStorage.getItem('fallback_api_key');
   if (!apiKey || apiKey.length < 20) throw new Error('No API key found.');
 
-  // CCSS-aligned scoring rubric. Scores are 0-100 mapped to CCSS performance levels:
-  // L1=Well Below (0-44) | L2=Approaching (45-64) | L3=Meeting (65-79) | L4=Exceeding (80-89) | L5=Advanced (90-100)
-  // CRITICAL: Score a typical grade-level essay around 65-72. Most student writing earns 45-79.
-  // Reserve 80+ for genuinely strong work and 90+ for exceptional/publishable quality.
-  // Do NOT score everything at 25-40 — that would mean the student writes at 2nd-grade level.
-  const rubric = 'Score each skill 0-100 using CCSS Writing Standards. Use the full range honestly.\n\n'
-    + 'SCORING GUIDE (most Grade 6-10 student writing lands in the 50-75 range):\n'
-    + '  0-44  (Well Below Standard / L1): Serious structural problems; hard to follow; missing required elements for this grade\n'
-    + '  45-64 (Approaching Standard / L2): Partial understanding; some key elements present but inconsistent; below grade expectations\n'
-    + '  65-79 (Meeting Standard / L3): Meets grade-level CCSS expectations; clear and functional; minor weaknesses\n'
-    + '  80-89 (Exceeding Standard / L4): Consistently above grade level; strong command; few errors\n'
-    + '  90-100 (Advanced / L5): Exemplary; sophisticated; publishable-quality for this grade band\n\n'
-    + 'ORGANIZATION (CCSS W.1a, W.2a, W.3a): Intro/body/conclusion structure, logical flow, transitions, paragraph unity\n'
-    + 'EVIDENCE (CCSS W.1b, W.2b, W.9): Use of relevant details, quotes, facts, examples to support claims; citation or attribution\n'
-    + 'GRAMMAR (CCSS L.1, L.2): Sentence correctness, punctuation, capitalization, spelling, subject-verb agreement\n'
-    + 'SENTENCE_VARIETY (CCSS L.3a): Mix of simple, compound, complex sentences; varied openings; deliberate stylistic choices\n'
-    + 'VOCABULARY (CCSS L.4, L.6): Precise, grade-appropriate word choice; domain-specific terms; avoidance of vague filler words\n'
-    + 'ARGUMENT_STRENGTH (CCSS W.1): Clear claim/thesis, logical reasoning, acknowledgment of counterargument, conclusion';
+  const rubricDesc =
+    'BREED MIDDLE SCHOOL WRITING RUBRIC. Score each category 1, 2, 3, or 4 ONLY (integers).\n\n' +
+    'CLAIM (Restate & Answer):\n' +
+    '  1=Does not address the question or develop the topic.\n' +
+    '  2=Addresses the question, ideas somewhat developed.\n' +
+    '  3=Addresses the question, ideas mostly developed.\n' +
+    '  4=Addresses the question, ideas clearly developed.\n\n' +
+    'EVIDENCE (Cite):\n' +
+    '  1=Evidence is not relevant.\n' +
+    '  2=Evidence somewhat relevant and developed to support claim.\n' +
+    '  3=Evidence mostly relevant and clearly developed to support claim.\n' +
+    '  4=Evidence relevant and skillfully developed to support claim.\n\n' +
+    'REASONING (Explain):\n' +
+    '  1=Key parts of evidence not described; no explanation of how evidence supports claim.\n' +
+    '  2=Key parts somewhat described; some explanation of how evidence supports claim.\n' +
+    '  3=Key parts described; mostly clear explanation of how evidence supports claim.\n' +
+    '  4=Key parts clearly described; clear thorough explanation of how evidence supports claim.\n\n' +
+    'CONVENTIONS:\n' +
+    '  1=Numerous errors interfere with meaning; fragments and run-ons.\n' +
+    '  2=Some errors interfere with meaning; most sentences complete.\n' +
+    '  3=Few errors that may distract but not interfere; most sentences complete and punctuated correctly.\n' +
+    '  4=No errors interfere with meaning; almost all sentences complete and punctuated correctly.\n\n' +
+    'Score ranges: 1-4=Needs Improvement | 5-8=Developing Proficiency | 9-12=Proficient | 13-16=Exceeds Expectations';
 
-  const userPrompt = 'Grade ' + gradeLevel + ' student.' + (assignmentPrompt ? ' Assignment: "' + assignmentPrompt + '"' : ' Free write.')
-    + '\n\nRUBRIC:\n' + rubric
-    + '\n\nSTUDENT WRITING:\n"""\n' + content + '\n"""\n\n'
-    + 'Respond ONLY with this exact JSON:\n'
-    + '{"scores":{"organization":0,"evidence":0,"grammar":0,"sentence_variety":0,"vocabulary":0,"argument_strength":0},'
-    + '"feedback_summary":"2-3 warm encouraging sentences",'
-    + '"strength_highlights":[{"skill":"","text":"exact quote","comment":"why strong"}],'
-    + '"improvement_highlights":[{"skill":"","text":"quote","comment":"suggestion","example":"rewritten version"}],'
-    + '"micro_skills_flagged":["specific weakness"],'
-    + '"next_steps":"one concrete action",'
-    + '"factual_errors":[{"claim":"exact quote","correction":"accurate fact","type":"science|math|history|geography|other","explanation":"brief educational explanation"}]}';
+  const userPrompt =
+    'Grade ' + gradeLevel + ' student writing.' +
+    (assignmentPrompt ? ' Assignment: "' + assignmentPrompt + '"' : '') +
+    '\n\n' + rubricDesc +
+    '\n\nSTUDENT WRITING:\n"""\n' + content + '\n"""\n\n' +
+    'Score honestly. A student with a clear claim, some evidence, basic reasoning earns 2-3 per category. ' +
+    'Reserve 4s for genuinely strong work.\n\n' +
+    'Respond ONLY with this JSON (scores must be integers 1-4):\n' +
+    '{"scores":{"claim":0,"evidence":0,"reasoning":0,"conventions":0},' +
+    '"feedback_summary":"2-3 warm encouraging sentences referencing the rubric",' +
+    '"claim_feedback":"specific feedback on their claim",' +
+    '"evidence_feedback":"specific feedback on their evidence",' +
+    '"reasoning_feedback":"specific feedback on their reasoning",' +
+    '"conventions_feedback":"specific feedback on grammar and conventions",' +
+    '"strength_highlights":[{"skill":"","text":"exact quote","comment":"why strong"}],' +
+    '"improvement_highlights":[{"skill":"","text":"quote","comment":"suggestion","example":"rewritten"}],' +
+    '"micro_skills_flagged":["specific weakness"],' +
+    '"next_steps":"one concrete action for their lowest category",' +
+    '"factual_errors":[{"claim":"exact quote","correction":"accurate fact","explanation":"brief explanation"}]}';
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
     body: JSON.stringify({
-      model: 'gpt-4o',
-      max_tokens: 1800,
+      model: 'gpt-4o', max_tokens: 1800,
       response_format: { type: 'json_object' },
       messages: [
-        { role: 'system', content: 'You are WriteLift AI, a K-12 writing assessment engine aligned to Common Core State Standards (CCSS). ' +
-          'Score Grade ' + gradeLevel + ' writing HONESTLY against grade-level CCSS expectations using the full 0-100 range. ' +
-          'A typical student writing at grade level should score 65-79 on most skills. ' +
-          'DO NOT compress all scores into the 20-45 range — that implies every student writes at a 2nd-grade level, which is inaccurate and demoralizing. ' +
-          'DO NOT inflate scores to 85-100 unless the writing is genuinely exemplary. ' +
-          'Score what is actually on the page: if a student writes a clear 3-paragraph essay with a thesis and some evidence, that is Meeting Standard (65-79), not Well Below Standard. ' +
-          'Reference specific sentences. Be specific and actionable. ' +
-          'IMPORTANT: Check for factual accuracy — flag any mathematical, scientific, or historical errors gently in factual_errors. ' +
-          'Respond ONLY with valid JSON.' },
+        { role: 'system', content: 'You are WriteLift AI using the Breed Middle School Writing Rubric. ' +
+          'Score Grade ' + gradeLevel + ' writing. Each of 4 categories (Claim, Evidence, Reasoning, Conventions) scored 1-4 (integers only). ' +
+          'Total out of 16. Be honest, specific, encouraging. Reference actual sentences. Respond ONLY with valid JSON.' },
         { role: 'user', content: userPrompt }
       ]
     })
@@ -1340,23 +1374,27 @@ async function callAI(content, gradeLevel, assignmentPrompt) {
   const data = await response.json();
   const raw = JSON.parse(data.choices[0].message.content);
   const scores = raw.scores;
-  const total = Object.values(scores).reduce((a,b) => a+b, 0);
-  const overallScore = Math.round(total / Object.keys(scores).length);
+  Object.keys(scores).forEach(k => { scores[k] = Math.max(1, Math.min(4, Math.round(Number(scores[k]) || 1))); });
+
+  const total = Object.values(scores).reduce((a,b) => a + Number(b), 0);
+  const overallLevel = total <= 4 ? 1 : total <= 8 ? 2 : total <= 12 ? 3 : 4;
+  const overallScore = Math.round((total / 16) * 100);
 
   return {
-    scores,
-    overall_score: overallScore,
-    overall_level: scoreToLevel(overallScore),
-    feedback_summary: raw.feedback_summary,
+    scores, total_score: total, overall_score: overallScore, overall_level: overallLevel,
+    feedback_summary: raw.feedback_summary || '',
+    claim_feedback: raw.claim_feedback || '',
+    evidence_feedback: raw.evidence_feedback || '',
+    reasoning_feedback: raw.reasoning_feedback || '',
+    conventions_feedback: raw.conventions_feedback || '',
     strength_highlights: raw.strength_highlights || [],
     improvement_highlights: raw.improvement_highlights || [],
     micro_skills_flagged: raw.micro_skills_flagged || [],
-    next_steps: raw.next_steps,
+    next_steps: raw.next_steps || '',
     factual_errors: raw.factual_errors || [],
   };
 }
 
-// ── GENERATE EXERCISES (MLL + Standard paths) ──
 async function generateExercises(microSkills, overallLevel, scores, isMLL, writingSample) {
   if (!microSkills?.length) return [];
   const apiKey = HARDCODED_API_KEY || STATE.teacher?.apiKey || localStorage.getItem('writelift_openai_key');
@@ -1829,66 +1867,128 @@ function checkMilestones(result) {
   return earned.filter(Boolean);
 }
 
-// ── RENDER ASSESSMENT RESULT ──
+// -- RENDER ASSESSMENT RESULT --
 function renderAssessmentResult(result, newMilestones, isMLL) {
-  const levelLabel = ['','Below Grade','Approaching','Grade Level','Above Grade','Advanced'][result.overall_level];
-  const mllNote = isMLL ? '<div class="mll-badge" style="margin-bottom:12px">🌐 Language Support exercises have been assigned — check the Practice tab</div>' : '';
+  const levelLabel = ['','Needs Improvement','Developing Proficiency','Proficient','Exceeds Expectations'][result.overall_level] || 'Needs Improvement';
+  const mllNote = isMLL ? '<div class="mll-badge" style="margin-bottom:12px">🌐 Language Support Mode active — sentence frame exercises assigned.</div>' : '';
 
-  const factualHtml = result.factual_errors?.length ? `
-    <div style="margin-top:16px;background:rgba(244,165,54,0.07);border:1px solid rgba(244,165,54,0.25);border-radius:10px;padding:16px 18px">
-      <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--amber-dark);font-weight:700;margin-bottom:10px">🔍 Fact Check</div>
-      <div style="font-size:0.82rem;color:#5A4010;margin-bottom:10px;line-height:1.5">Good writers make sure their facts are accurate. Here are a few things to double-check:</div>
-      ` + result.factual_errors.map(e =>
-        '<div style="background:var(--white);border-radius:8px;padding:12px 14px;margin-bottom:8px;border-left:3px solid var(--amber)">'
+  const factualHtml = result.factual_errors?.length ? (
+    '<div style="margin-top:16px;background:rgba(244,165,54,0.07);border:1px solid rgba(244,165,54,0.25);border-radius:12px;padding:16px">'
+    + '<div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.07em;font-weight:700;color:var(--amber-dark);margin-bottom:10px">📌 Fact Check</div>'
+    + result.factual_errors.map(e =>
+        '<div style="background:var(--white);border-radius:8px;padding:12px 14px;margin-bottom:8px">'
         + '<div style="font-size:0.8rem;color:#6B3A00;margin-bottom:4px">You wrote: <em>"' + e.claim + '"</em></div>'
-        + '<div style="font-size:0.85rem;font-weight:600;color:var(--navy);margin-bottom:4px">✓ Actually: ' + e.correction + '</div>'
+        + '<div style="font-size:0.85rem;font-weight:600;color:var(--navy);margin-bottom:4px">✅ ' + e.correction + '</div>'
         + '<div style="font-size:0.78rem;color:#6B8299;line-height:1.5">' + e.explanation + '</div>'
-        + '<div style="font-size:0.7rem;margin-top:6px"><span style="background:rgba(244,165,54,0.15);color:var(--amber-dark);padding:2px 8px;border-radius:100px;font-weight:600;text-transform:uppercase">' + e.type + '</span></div>'
         + '</div>'
-      ).join('') + '</div>' : '';
+      ).join('') + '</div>'
+  ) : '';
 
-  const readingsCallout = STATE.readings?.length ? `
-    <div class="readings-callout">
-      <div class="rc-callout-header">📖 Readings Assigned (${(STATE.readings||[]).filter(r=>!r.read).length} new)</div>
-      ${(STATE.readings||[]).filter(r=>!r.read).slice(0,2).map(r =>
+  const readingsCallout = STATE.readings?.length ? (
+    '<div class="readings-callout">'
+    + '<div class="rc-callout-header">📖 Readings Assigned (' + (STATE.readings||[]).filter(r=>!r.read).length + ' new)</div>'
+    + (STATE.readings||[]).filter(r=>!r.read).slice(0,2).map(r =>
         '<div class="rc-callout-article"><strong>' + r.title + '</strong> · ' + r.source + ' · ' + r.lexileMin + '–' + r.lexileMax + 'L</div>'
-      ).join('')}
-      <button class="btn btn-sm btn-primary" style="margin-top:10px" onclick="switchStudentTab('readings')">📖 Go to My Readings</button>
-    </div>` : '';
+      ).join('')
+    + '<button class="btn btn-sm btn-primary" style="margin-top:10px" onclick="switchStudentTab(\'readings\')">📖 Go to My Readings</button>'
+    + '</div>'
+  ) : '';
+
+  // -- Breed Rubric category cards --
+  const rubricCats = [
+    { key: 'claim',       icon: '🎯', label: 'Claim',       sub: 'Restate & Answer' },
+    { key: 'evidence',    icon: '📚', label: 'Evidence',    sub: 'Cite' },
+    { key: 'reasoning',   icon: '🔗', label: 'Reasoning',   sub: 'Explain' },
+    { key: 'conventions', icon: '✏️',  label: 'Conventions', sub: 'Grammar & Mechanics' },
+  ];
+
+  const totalSc = result.total_score || Object.values(result.scores).reduce((a,b) => a + Number(b), 0);
+  const bnd = totalSc <= 4 ? 'Needs Improvement' : totalSc <= 8 ? 'Developing Proficiency' : totalSc <= 12 ? 'Proficient' : 'Exceeds Expectations';
+
+  const catHtml = rubricCats.map(cat => {
+    const sc   = result.scores[cat.key] || 1;
+    const fb   = result[cat.key + '_feedback'] || '';
+    const desc = (RUBRIC_DESCRIPTORS[cat.key] && RUBRIC_DESCRIPTORS[cat.key][sc]) || '';
+    const col  = SKILL_COLORS[cat.key];
+    const dots = [1,2,3,4].map(d =>
+      '<span style="display:inline-block;width:14px;height:14px;border-radius:50%;margin-right:4px;border:2px solid ' + col + ';background:' + (d <= sc ? col : 'transparent') + '"></span>'
+    ).join('');
+    return '<div style="background:var(--cream);border-radius:12px;padding:16px;border-left:4px solid ' + col + '">'
+      + '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">'
+      +   '<div style="display:flex;align-items:center;gap:8px">'
+      +     '<span style="font-size:1.2rem">' + cat.icon + '</span>'
+      +     '<div>'
+      +       '<div style="font-weight:700;font-size:0.95rem;color:var(--navy)">' + cat.label + '</div>'
+      +       '<div style="font-size:0.7rem;color:#6B8299;font-style:italic">' + cat.sub + '</div>'
+      +     '</div>'
+      +   '</div>'
+      +   '<div style="font-family:\'Playfair Display\',serif;font-size:1.8rem;font-weight:900;color:' + col + ';line-height:1">'
+      +     sc + '<span style="font-size:0.85rem;font-weight:400;color:#6B8299">/4</span>'
+      +   '</div>'
+      + '</div>'
+      + '<div style="margin-bottom:10px">' + dots + '</div>'
+      + (fb
+          ? '<div style="font-size:0.875rem;line-height:1.7;color:var(--navy);margin-bottom:8px">' + fb + '</div>'
+          : '')
+      + (desc
+          ? '<div style="font-size:0.75rem;color:#6B8299;font-style:italic;border-top:1px solid rgba(0,0,0,0.07);padding-top:7px;margin-top:4px">📋 Rubric: ' + desc + '</div>'
+          : '')
+      + '</div>';
+  }).join('');
 
   return '<div class="assessment-panel">'
-    + '<div class="ap-header"><div class="ap-title">📊 AI Assessment Complete</div>'
-    + '<div class="ap-score"><div class="ap-score-num">' + result.overall_score + '</div>'
-    + '<div class="ap-score-label">Score · Level ' + result.overall_level + ' · ' + levelLabel + '</div></div></div>'
+    + '<div class="ap-header"><div class="ap-title">📊 Writing Assessment</div>'
+    +   '<div class="ap-score">'
+    +     '<div class="ap-score-num">' + totalSc + '<span style="font-size:1rem;font-weight:400;opacity:0.5">/16</span></div>'
+    +     '<div class="ap-score-label">' + bnd + '</div>'
+    +   '</div>'
+    + '</div>'
     + '<div class="ap-body">'
     + mllNote
-    + '<div class="ap-feedback">' + result.feedback_summary + '</div>'
-    + '<div class="ap-skills">'
-    + Object.entries(result.scores).map(([sk, sc]) => {
-        const lv = scoreToLevel(sc);
-        return '<div class="ap-skill"><div class="ap-skill-name">' + SKILL_LABELS[sk] + '</div>'
-          + '<div class="ap-skill-score" style="color:' + SKILL_COLORS[sk] + '">' + sc + '</div>'
-          + '<div class="ap-skill-level lv' + lv + '">L' + lv + '</div></div>';
-      }).join('')
+    + (result.feedback_summary ? '<div class="ap-feedback">' + result.feedback_summary + '</div>' : '')
+    + '<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">'
+    + catHtml
     + '</div>'
-    + (result.strength_highlights?.length ? '<div style="margin-bottom:12px">'
-        + '<div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--emerald);margin-bottom:6px">✅ Strengths</div>'
-        + result.strength_highlights.map(s => '<div class="strength-item"><strong>"' + s.text + '"</strong> — ' + s.comment + '</div>').join('') + '</div>' : '')
-    + (result.improvement_highlights?.length ? '<div style="margin-bottom:12px">'
-        + '<div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--sky);margin-bottom:6px">📝 To Improve</div>'
-        + result.improvement_highlights.map(s => '<div class="improve-item"><strong>"' + s.text + '"</strong> — ' + s.comment + (s.example ? '<div style="margin-top:4px;font-style:italic;color:var(--sky)">Try: "' + s.example + '"</div>' : '') + '</div>').join('') + '</div>' : '')
-    + (result.next_steps ? '<div class="next-steps-box">🎯 <strong>Next Step:</strong> ' + result.next_steps + '</div>' : '')
+    + (result.strength_highlights && result.strength_highlights.length
+        ? '<div style="margin-bottom:12px">'
+          + '<div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--emerald);margin-bottom:8px">✅ What You Did Well</div>'
+          + result.strength_highlights.map(s =>
+              '<div class="strength-item">'
+              + '<strong style="font-style:italic">&ldquo;' + s.text + '&rdquo;</strong>'
+              + '<br><span style="color:#2ECC8A;font-size:0.82rem">' + s.comment + '</span>'
+              + '</div>'
+            ).join('')
+          + '</div>'
+        : '')
+    + (result.improvement_highlights && result.improvement_highlights.length
+        ? '<div style="margin-bottom:12px">'
+          + '<div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--sky);margin-bottom:8px">📝 How to Improve</div>'
+          + result.improvement_highlights.map(s =>
+              '<div class="improve-item">'
+              + '<strong style="font-style:italic">&ldquo;' + s.text + '&rdquo;</strong> — ' + s.comment
+              + (s.example ? '<div style="margin-top:5px;font-style:italic;color:var(--sky)">✏️ Try: &ldquo;' + s.example + '&rdquo;</div>' : '')
+              + '</div>'
+            ).join('')
+          + '</div>'
+        : '')
+    + (result.next_steps
+        ? '<div class="next-steps-box">🎯 <strong>Next Step:</strong> ' + result.next_steps + '</div>'
+        : '')
     + factualHtml
     + readingsCallout
     + '<div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">'
-    + '<button class="btn btn-primary btn-sm" onclick="switchStudentTab(\'exercises\')">🎯 Practice Exercises</button>'
-    + '<button class="btn btn-secondary btn-sm" onclick="switchStudentTab(\'readings\')">📖 My Readings</button>'
+    +   '<button class="btn btn-primary btn-sm" onclick="switchStudentTab(\'exercises\')">🎯 Practice Exercises</button>'
+    +   '<button class="btn btn-secondary btn-sm" onclick="switchStudentTab(\'readings\')">📖 My Readings</button>'
     + '</div>'
-    + (newMilestones?.length ? '<div style="margin-top:16px;background:rgba(244,165,54,0.06);border-radius:10px;padding:14px">'
-        + '<div style="font-size:0.75rem;font-weight:700;color:var(--amber-dark);margin-bottom:8px">🏆 New Milestone!</div>'
-        + newMilestones.map(m => '<div style="font-size:0.875rem">' + m.icon + ' <strong>' + m.label + '</strong></div>').join('') + '</div>' : '')
+    + (newMilestones && newMilestones.length
+        ? '<div style="margin-top:16px;background:rgba(244,165,54,0.06);border-radius:10px;padding:14px">'
+          + '<div style="font-size:0.75rem;font-weight:700;color:var(--amber-dark);margin-bottom:8px">🏆 New Milestone!</div>'
+          + newMilestones.map(m => '<div style="font-size:0.875rem">' + m.icon + ' <strong>' + m.label + '</strong></div>').join('')
+          + '</div>'
+        : '')
     + '</div></div>';
 }
+
 
 // ── TAB: EXERCISES ──
 function renderTabExercises() {
@@ -2809,7 +2909,7 @@ function confirmDeleteClass(classId) {
 function viewSubmission(id) {
   const sub = STATE.submissions.find(s => s.id == id);
   if (!sub) return;
-  const levelLabel = ['','Well Below Standard','Approaching Standard','Meeting Standard','Exceeding Standard','Advanced'][sub.overallLevel||1];
+  const levelLabel = ['','Needs Improvement','Developing Proficiency','Proficient','Exceeds Expectations'][sub.overallLevel||1] || 'Needs Improvement';
   const mllTag = sub.isMLL ? '<span class="mll-badge" style="font-size:0.65rem;padding:2px 7px;margin-left:8px">🌐 MLL</span>' : '';
   const weakSkills = Object.entries(sub.scores||{}).sort((a,b)=>a[1]-b[1]).slice(0,2);
   const strategies = weakSkills.map(([sk, sc]) => {
@@ -2833,14 +2933,14 @@ function viewSubmission(id) {
 
     <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:14px;flex-wrap:wrap">
       <div style="text-align:center;min-width:70px">
-        <div style="font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:900;color:var(--amber-dark)">${sub.overallScore}</div>
+        <div style="font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:900;color:var(--amber-dark)">${sub.totalScore || Math.round((sub.overallScore/100)*16)}/16</div>
         <div style="font-size:0.72rem;color:#6B8299;text-transform:uppercase;letter-spacing:0.06em">L${sub.overallLevel} · ${levelLabel}</div>
       </div>
       <div style="flex:1;min-width:200px">
         ${Object.entries(sub.scores||{}).map(([sk,score]) => `
         <div class="skill-row">
           <span class="skill-name">${SKILL_LABELS[sk]}</span>
-          <div class="skill-track"><div class="skill-fill" style="width:${score}%;background:${SKILL_COLORS[sk]}"></div></div>
+          <div class="skill-track"><div class="skill-fill" style="width:${(score/4)*100}%;background:${SKILL_COLORS[sk]}"></div></div>
           <span class="skill-score">${score}</span>
         </div>`).join('')}
       </div>
