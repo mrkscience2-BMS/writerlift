@@ -144,6 +144,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--navy);
 .wc-row{display:flex;align-items:center;justify-content:space-between;margin-top:10px;margin-bottom:16px}
 .wc-count{font-size:0.8rem;color:var(--text-secondary)}
 .wc-count span{font-weight:700;color:var(--navy)}
+.lfc-row{display:grid;grid-template-columns:18px 1fr;gap:10px;align-items:start;padding:8px 10px;border-radius:9px;font-size:0.84rem;line-height:1.5}
+.lfc-ok{background:rgba(46,204,138,0.08)}.lfc-warn{background:rgba(244,165,54,0.1)}.lfc-error{background:rgba(232,93,117,0.09)}
+.lfc-icon{font-size:0.95rem;margin-top:1px}.lfc-text b{font-weight:700}.lfc-text{color:var(--navy)}
+.lfc-example{display:inline-block;margin-top:4px;font-style:italic;color:var(--sky);font-size:0.8rem}
 
 /* ── ASSESSMENT RESULT ── */
 .assessment-panel{background:var(--white);border-radius:16px;border:1px solid var(--border);overflow:hidden;margin-top:20px}
@@ -1089,6 +1093,13 @@ function renderTabWrite() {
       <div class="wc-count">Words: <span id="word-count">0</span></div>
       <button class="btn btn-primary" id="submit-btn" onclick="submitEssay()">Submit for Assessment →</button>
     </div>
+    <div id="live-feedback-panel" style="display:none;margin-top:14px;background:#f8faff;border:1.5px solid var(--border);border-radius:14px;overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--navy);color:#fff">
+        <div style="font-size:0.78rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase">💡 Live Writing Coach</div>
+        <div id="live-feedback-status" style="font-size:0.72rem;opacity:0.6">Watching your writing…</div>
+      </div>
+      <div id="live-feedback-body" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"></div>
+    </div>
     <div id="assessment-result"></div>`;
 }
 
@@ -1099,8 +1110,181 @@ function updateWordCount(el) {
 }
 function attachStudentEvents() {
   const ea = document.getElementById('essay-input');
-  if (ea) ea.addEventListener('input', () => updateWordCount(ea));
+  if (ea) ea.addEventListener('input', () => { updateWordCount(ea); scheduleLiveFeedback(ea); });
 }
+
+// ── LIVE WRITING COACH ──
+let liveFeedbackTimer = null;
+let liveFeedbackRequest = 0;
+
+function scheduleLiveFeedback(ea) {
+  clearTimeout(liveFeedbackTimer);
+  const wc = (ea.value.trim().match(/\S+/g)||[]).length;
+  if (wc < 20) { hideLiveFeedback(); return; }
+  document.getElementById('live-feedback-panel').style.display = 'block';
+  setLiveFeedbackStatus('Watching…');
+  liveFeedbackTimer = setTimeout(() => runLiveFeedback(ea.value), 600);
+}
+
+function hideLiveFeedback() {
+  const p = document.getElementById('live-feedback-panel');
+  if (p) p.style.display = 'none';
+}
+
+function setLiveFeedbackStatus(msg) {
+  const el = document.getElementById('live-feedback-status');
+  if (el) el.textContent = msg;
+}
+
+// ── CLIENT-SIDE LIVE FEEDBACK (no API call — instant, works on all networks) ──
+function runLiveFeedback(text) {
+  const reqId = ++liveFeedbackRequest;
+  const assignment = getAssignmentForStudent();
+  const assignPrompt = (assignment?.prompt || '').toLowerCase();
+  const t = text.trim();
+  const sentences = t.match(/[^.!?]+[.!?]+/g) || [t];
+  const words = t.split(/\s+/).filter(Boolean);
+  const lower = t.toLowerCase();
+
+  const fb = {};
+
+  // ── CLAIM ───────────────────────────────────────────────────────────────
+  // Look for: thesis openers, 'I believe/think/argue', 'should/must/is/are because'
+  const claimPhrases = [
+    /\bI (believe|think|argue|feel|claim|contend)\b/i,
+    /\b(should|must|need to|ought to)\b.*\bbecause\b/i,
+    /\b(is|are|was|were) (important|necessary|wrong|right|harmful|beneficial|better|worse|the best|the worst)\b/i,
+    /\bthe (main|most important|biggest|primary|key) (reason|problem|issue|cause|effect)\b/i,
+    /\b(this shows|this proves|this means|this demonstrates|therefore|as a result|in conclusion)\b/i,
+    /\b(first|second|third|finally|furthermore|in addition|however|although|even though)\b/i,
+  ];
+  const hasClaimOpener = claimPhrases.slice(0,4).some(r => r.test(t));
+  const hasStructure   = claimPhrases.slice(4).some(r => r.test(t));
+
+  // Extract the first sentence as the likely claim
+  const firstSentence = sentences[0]?.trim() || '';
+  const claimIsQuestion = /\?$/.test(firstSentence);
+  const claimTooShort  = firstSentence.split(/\s+/).length < 6;
+
+  if (hasClaimOpener && !claimIsQuestion) {
+    fb.claim = { status: 'ok', message: 'Good — your opening states a clear position. Make sure it directly answers the prompt.' };
+  } else if (words.length < 40) {
+    fb.claim = { status: 'tip', message: 'Start with a clear claim that answers the question. Try: “I believe [position] because [reason].”', example: assignPrompt ? 'Example: “' + (assignPrompt.length > 60 ? assignPrompt.substring(0,60)+'...' : assignPrompt) + '” → state your position clearly.' : '' };
+  } else if (claimTooShort || claimIsQuestion) {
+    fb.claim = { status: 'fix', message: 'Your opening sentence is too short or phrased as a question. A strong claim directly states your position.', example: 'Instead of a question, try: “[Topic] is [your position] because [reason].”' };
+  } else {
+    fb.claim = { status: 'tip', message: 'Your opening sounds like a claim — make sure it directly answers the prompt and includes your reasoning.', example: 'Try adding “because” followed by your main reason.' };
+  }
+
+  // ── EVIDENCE ─────────────────────────────────────────────────────────────
+  const evidencePhrases = [
+    /according to/i,
+    /the (article|text|author|passage|source|study|research|data|evidence) (says|states|shows|explains|argues|reports|found|notes)/i,
+    /“[^\u201d]{10,}”/,  // curly quotes
+    /"[^"]{10,}"/,    // straight quotes
+    /for example|for instance|such as|one example|in the (article|text|story)/i,
+    /\d+\s*(%|percent|million|billion|thousand|studies|students|people|years)/i,
+    /in (\d{4}|the \d+s)/i,
+  ];
+  const evidenceCount = evidencePhrases.filter(r => r.test(t)).length;
+
+  if (evidenceCount >= 2) {
+    fb.evidence = { status: 'ok', message: 'Great — you have specific evidence supporting your claim. Make sure each piece connects back to your argument.' };
+  } else if (evidenceCount === 1) {
+    fb.evidence = { status: 'tip', message: 'You have one piece of evidence — try adding a second. Use a quote, statistic, or specific example from the text.', example: 'Try: “According to the article, …” or “For example, …”' };
+  } else if (words.length < 50) {
+    fb.evidence = { status: 'tip', message: 'Once you finish your claim, add evidence: a quote, fact, or specific example from the text.' };
+  } else {
+    fb.evidence = { status: 'fix', message: 'No specific evidence found yet. Cite a fact, quote, or example to back up your claim.', example: 'Try: “According to [source], ‘[quote]’” or name a specific statistic or event.' };
+  }
+
+  // ── REASONING ────────────────────────────────────────────────────────────
+  const reasoningPhrases = [
+    /this (shows|proves|means|demonstrates|suggests|indicates|reveals)/i,
+    /this is (important|significant|relevant) because/i,
+    /therefore|as a result|which means|which shows|because of this/i,
+    /this (evidence|example|quote|fact|statistic) (shows|proves|supports|demonstrates)/i,
+    /in other words|to put it (differently|simply)|what this means is/i,
+    /the reason (is|why|that)|this (tells|teaches|reminds) us/i,
+  ];
+  const reasoningCount = reasoningPhrases.filter(r => r.test(t)).length;
+  const hasBecause = (t.match(/\bbecause\b/gi) || []).length;
+
+  if (reasoningCount >= 2 || (reasoningCount >= 1 && hasBecause >= 2)) {
+    fb.reasoning = { status: 'ok', message: 'You are explaining your evidence well — keep connecting it back to your claim.' };
+  } else if (reasoningCount === 1 || hasBecause >= 2) {
+    fb.reasoning = { status: 'tip', message: 'You have some reasoning — try explaining more clearly HOW your evidence proves your point.', example: 'After your evidence, add: “This shows that … because …”' };
+  } else if (evidenceCount > 0) {
+    fb.reasoning = { status: 'fix', message: 'You cited evidence but haven’t explained how it supports your claim. Add a sentence explaining the connection.', example: 'After your evidence, write: “This shows that [your claim] because [explanation].”' };
+  } else {
+    fb.reasoning = { status: 'tip', message: 'Once you add evidence, explain how it proves your point using “This shows that…” or “This is important because…”' };
+  }
+
+  // ── CONVENTIONS ──────────────────────────────────────────────────────────
+  const errors = [];
+
+  // Run-ons: very long sentence without conjunction or punctuation break
+  sentences.forEach(s => {
+    const sw = s.trim().split(/\s+/).length;
+    if (sw > 45) errors.push({ type: 'run-on', quote: s.trim().substring(0, 60) + '…', fix: 'This sentence is very long — try splitting it into two sentences.' });
+  });
+
+  // Comma splices: [word], [word] pattern (two independent clauses joined only by comma)
+  const commaSplice = t.match(/[a-z]{3,}\s*,\s*(I|he|she|they|we|it|the|a |an |this|that|these|those)[a-z ]{5,}/gi);
+  if (commaSplice && commaSplice.length > 0) {
+    errors.push({ type: 'comma splice', quote: commaSplice[0].substring(0, 50), fix: 'Possible comma splice — use a period or add “and/but/so” after the comma.' });
+  }
+
+  // Fragments: sentence under 4 words
+  sentences.forEach(s => {
+    const sw = s.trim().split(/\s+/).filter(Boolean).length;
+    if (sw > 0 && sw < 4 && words.length > 30) errors.push({ type: 'fragment', quote: '“' + s.trim() + '”', fix: 'This looks like a fragment — make sure it has a subject and verb.' });
+  });
+
+  // Missing capital at sentence start
+  const missingCap = t.match(/[.!?]\s+[a-z]/g);
+  if (missingCap && missingCap.length > 1) {
+    errors.push({ type: 'capitalization', quote: '', fix: 'Some sentences may not start with a capital letter.' });
+  }
+
+  if (errors.length === 0) {
+    fb.conventions = { status: 'ok', message: 'Sentences look well-formed — no obvious run-ons, fragments, or comma splices detected.' };
+  } else if (errors.length === 1) {
+    const e = errors[0];
+    fb.conventions = { status: 'tip', message: 'Possible ' + e.type + ': ' + (e.quote ? '“' + e.quote + '” — ' : '') + e.fix };
+  } else {
+    const e = errors[0];
+    fb.conventions = { status: 'fix', message: errors.length + ' possible issues found. First: ' + e.type + (e.quote ? ' — “' + e.quote + '”' : '') + '. ' + e.fix };
+  }
+
+  if (reqId !== liveFeedbackRequest) return;
+  renderLiveFeedback(fb);
+}
+
+function renderLiveFeedback(fb) {
+  const cats = [
+    { key: 'claim',       icon: '🎯', label: 'Claim' },
+    { key: 'evidence',    icon: '📚', label: 'Evidence' },
+    { key: 'reasoning',   icon: '🔗', label: 'Reasoning' },
+    { key: 'conventions', icon: '✏️',  label: 'Conventions' },
+  ];
+  const sIcon  = { ok: '✅', tip: '💬', fix: '⚠️' };
+  const sCls   = { ok: 'lfc-ok', tip: 'lfc-warn', fix: 'lfc-error' };
+  const body = document.getElementById('live-feedback-body');
+  if (!body) return;
+  body.innerHTML = cats.map(cat => {
+    const item = fb[cat.key]; if (!item) return '';
+    const st = item.status || 'tip';
+    return '<div class="lfc-row ' + sCls[st] + '">'
+      + '<div class="lfc-icon">' + sIcon[st] + '</div>'
+      + '<div class="lfc-text"><b>' + cat.icon + ' ' + cat.label + ':</b> ' + (item.message || '')
+      + (item.example ? '<div class="lfc-example">✏️ ' + item.example + '</div>' : '')
+      + '</div></div>';
+  }).join('');
+  const okCount = cats.filter(c => fb[c.key]?.status === 'ok').length;
+  setLiveFeedbackStatus(okCount === 4 ? '🌟 Looking great!' : okCount + '/4 checks passing');
+}
+
 
 // ── SUBMIT ESSAY ──
 async function submitEssay() {
@@ -3379,6 +3563,21 @@ function parseCSV(text) {
   }
   if (field || row.length) { row.push(field); rows.push(row); }
   return rows;
+}
+
+// Retry syncing any submissions that haven't been saved to Sheets yet
+async function retrySheetsSync() {
+  const t = STATE.teacher;
+  if (!t?.sheetsUrl && !t?.scriptUrl) return; // no Sheets configured
+  const unsynced = STATE.submissions.filter(s => !s.syncedToSheets);
+  for (const sub of unsynced) {
+    try {
+      await saveToSheets(sub);
+      sub.syncedToSheets = true;
+    } catch(e) {
+      // silently skip — will retry next time student logs in
+    }
+  }
 }
 
 async function saveToSheets(submission) {
